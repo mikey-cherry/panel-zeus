@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Zeus</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React & ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- Babel (do uruchomienia JSX bezpośrednio w przeglądarce) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* CSS dla ukrycia paska przewijania w filtrach mapy */
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-slate-50">
+  
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo, useEffect } = React;
+
+    // Hardkodowana kategoryzacja pojemności domków
+    const CABINS = [
+      { id: 24, number: '24', capacity: 4, left: '36%', top: '11%' },
+      { id: 13, number: '13', capacity: 5, left: '59%', top: '9%' },
+      { id: 12, number: '12', capacity: 4, left: '66%', top: '8%' },
+      { id: 22, number: '22', capacity: 4, left: '27%', top: '30%' },
+      { id: 21, number: '21', capacity: 4, left: '39%', top: '28%' },
+      { id: 10, number: '10', capacity: 5, left: '55%', top: '31%' },
+      { id: 9, number: '9', capacity: 4, left: '61%', top: '30%' },
+      { id: 8, number: '8', capacity: 4, left: '68%', top: '29%' },
+      { id: 7, number: '7', capacity: 4, left: '74%', top: '28%' },
+      { id: 20, number: '20', capacity: 4, left: '26%', top: '42%' },
+      { id: 19, number: '19', capacity: 4, left: '34%', top: '41%' },
+      { id: 18, number: '18', capacity: 4, left: '41%', top: '39%' },
+      { id: 6, number: '6', capacity: 5, left: '51%', top: '40%' },
+      { id: 5, number: '5', capacity: 4, left: '60%', top: '47%' },
+      { id: 4, number: '4', capacity: 4, left: '68%', top: '48%' },
+      { id: 3, number: '3', capacity: 4, left: '75%', top: '47%' },
+      { id: 17, number: '17', capacity: 7, left: '20%', top: '63%' },
+      { id: 16, number: '16', capacity: 7, left: '28%', top: '66%' },
+      { id: 15, number: '15', capacity: 4, left: '34%', top: '59%' },
+      { id: 14, number: '14', capacity: 4, left: '42%', top: '60%' },
+      { id: 2, number: '2', capacity: 4, left: '57%', top: '58%' },
+      { id: 1, number: '1', capacity: 4, left: '64%', top: '60%' },
+    ];
+
+    const STATUS_OPTIONS = [
+      'Nowa - czekam na zadatek',
+      'Potwierdzona - zadatek opłacony',
+      'W trakcie - zapłacona w całości',
+      'Zrealizowana - goście wymeldowani',
+      'Do sprzątnięcia',
+      'Anulowana'
+    ];
+
+    const CLEANING_STATUSES = [
+      'do sprzątnięcia',
+      'zrobione & do rozliczenia',
+      'rozliczono'
+    ];
+
+    // --- ICONS (SVG) ---
+    const Icons = {
+      SortDefault: () => <svg className="w-3 h-3 ml-1 text-slate-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>,
+      SortAsc: () => <svg className="w-3 h-3 ml-1 text-teal-600 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 15l7-7 7 7"/></svg>,
+      SortDesc: () => <svg className="w-3 h-3 ml-1 text-teal-600 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"/></svg>,
+      ChevronLeft: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"/></svg>,
+      ChevronRight: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7"/></svg>,
+      Close: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>,
+      CalendarLine: ({ className }) => <svg className={className || "w-4 h-4 inline-block mr-1.5"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>,
+      Expand: () => <svg className="w-4 h-4 inline-block mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>,
+      Search: () => <svg className="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>,
+      CalendarInput: ({ className }) => <svg className={className || "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>,
+      Crib: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 6h16M4 10h16M4 14h16M4 6v12a2 2 0 002 2h12a2 2 0 002-2V6M8 18v3m8-3v3" /></svg>,
+      BabyBath: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 12v4a4 4 0 01-4 4H8a4 4 0 01-4-4v-4m16 0H4m8-6v6m-4-2h8" /></svg>,
+      HighChair: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 10h10M8 10V6a2 2 0 012-2h4a2 2 0 012 2v4m-9 0L5 22m10-12l2 12m-9-6h6" /></svg>,
+      Clock: () => <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+      Broom: ({ className }) => <svg className={className || "w-4 h-4 inline mr-1"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21l3-14m0 0l3 14m-3-14c1.5 0 3-1 3-2 0-2-3-3-3-3s-3 1-3 3c0 1 1.5 2 3 2zm-4 4h8" /></svg>,
+      StatusNew: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+      StatusConfirmed: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" /></svg>,
+      StatusInProgress: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
+      StatusDone: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7M5 18l4 4L19 12" /></svg>,
+      StatusCanceled: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+      ListIcon: () => <svg className="w-4 h-4 inline mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>,
+      WrenchIcon: () => <svg className="w-4 h-4 inline mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" /></svg>,
+      CheckDouble: () => <svg className="w-4 h-4 inline mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7M5 18l4 4L19 12" /></svg>,
+      ChevronDown: ({ className }) => <svg className={className || "w-4 h-4"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"/></svg>,
+      UsersIcon: () => <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+    };
+
+    // --- KOMPONENT TIMERA ---
+    const CountdownTimer = ({ createdAt }) => {
+      const [timeLeft, setTimeLeft] = React.useState('');
+      const [isExpired, setIsExpired] = React.useState(false);
+
+      React.useEffect(() => {
+        const calculateTime = () => {
+          const createdTime = new Date(createdAt).getTime();
+          const expirationTime = createdTime + (48 * 60 * 60 * 1000); 
+          const now = new Date().getTime();
+          const diff = expirationTime - now;
+
+          if (diff <= 0) {
+            setTimeLeft('Czas minął!');
+            setIsExpired(true);
+          } else {
+            const h = Math.floor(diff / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            setTimeLeft(`${h}h ${m}m`);
+            setIsExpired(false);
+          }
+        };
+
+        calculateTime();
+        const timer = setInterval(calculateTime, 60000);
+        return () => clearInterval(timer);
+      }, [createdAt]);
+
+      return (
+        <div className={`mt-2 w-full flex justify-center items-center px-4 py-2.5 rounded-xl text-xs font-bold border shadow-sm transition-all min-h-[44px] ${isExpired ? 'bg-red-50 text-red-700 border-red-400 animate-pulse ring-2 ring-red-500/20' : 'bg-white text-slate-500 border-slate-300 hover:bg-slate-50'}`}>
+          <Icons.Clock />
+          <span className="ml-1.5">{timeLeft}</span>
+        </div>
+      );
+    };
+
+    // --- UTILS ---
+    const formatDatePL = (dateString) => {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString;
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
+    };
+
+    const getTodayString = () => new Date().toISOString().split('T')[0];
+
+    const calculatePrice = (startDate, endDate, cabinCapacity, addons) => {
+      if (!startDate || !endDate) return 0;
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      if (isNaN(start.getTime()) || isNaN(end.getTime()) || start >= end) return 0;
+
+      let total = 0;
+      const c = parseInt(cabinCapacity);
+      
+      for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
+        const month = d.getMonth(); 
+        if (month === 6 || month === 7) {
+          if (c === 4) total += 550;
+          else if (c === 5) total += 600;
+          else if (c === 7) total += 700;
+        } else {
+          if (c === 4) total += 430;
+          else if (c === 5) total += 480;
+          else if (c === 7) total += 630;
+        }
+      }
+      if (addons?.crib) total += 100;
+      return total;
+    };
+
+    // --- DUMMY DATA GENERATOR ---
+    const addDays = (days) => {
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      return d.toISOString().split('T')[0];
+    };
+
+    const getCreationTime = (status) => {
+      const d = new Date();
+      if (status.includes('Nowa')) {
+        d.setHours(d.getHours() - (Math.floor(Math.random() * 40) + 10));
+      } else {
+        d.setDate(d.getDate() - 10);
+      }
+      return d.toISOString();
+    };
+
+    const baseReservations = [
+      { id: '1', cabinId: 24, cabinNumber: '24', firstName: 'Jan', lastName: 'Kowalski', phone: '123 456 789', email: 'jan@ex.com', capacity: '4', guestCount: '4', startDate: addDays(0), startTime: '15:00', endDate: addDays(5), endTime: '10:00', status: 'W trakcie - zapłacona w całości', addons: { crib: true, bath: false, chair: false } },
+      { id: '21', cabinId: 24, cabinNumber: '24', firstName: 'Karol', lastName: 'Wójcik', phone: '111 222 333', email: 'karol@ex.com', capacity: '4', guestCount: '4', startDate: addDays(5), startTime: '15:00', endDate: addDays(10), endTime: '10:00', status: 'Nowa - czekam na zadatek', addons: { crib: false, bath: false, chair: false } },
+      { id: '2', cabinId: 13, cabinNumber: '13', firstName: 'Anna', lastName: 'Nowak', phone: '987 654 321', email: 'anna@ex.com', capacity: '5', guestCount: '3', startDate: addDays(1), startTime: '16:00', endDate: addDays(6), endTime: '10:00', status: 'Nowa - czekam na zadatek', addons: { crib: false, bath: true, chair: true } },
+      { id: '3', cabinId: 12, cabinNumber: '12', firstName: 'Piotr', lastName: 'Wiśniewski', phone: '555 444 333', email: 'piotr@ex.com', capacity: '4', guestCount: '4', startDate: addDays(-2), startTime: '15:00', endDate: addDays(4), endTime: '10:00', status: 'W trakcie - zapłacona w całości', addons: { crib: false, bath: false, chair: false } },
+      { id: '4', cabinId: 22, cabinNumber: '22', firstName: 'Katarzyna', lastName: 'Wójcik', phone: '111 222 333', email: 'kasia@ex.com', capacity: '4', guestCount: '2', startDate: addDays(0), startTime: '18:00', endDate: addDays(5), endTime: '10:00', status: 'Potwierdzona - zadatek opłacony', addons: { crib: false, bath: false, chair: false } },
+      { id: '5', cabinId: 21, cabinNumber: '21', firstName: 'Tomasz', lastName: 'Kamiński', phone: '999 888 777', email: 'tomasz@ex.com', capacity: '4', guestCount: '4', startDate: addDays(1), startTime: '15:00', endDate: addDays(7), endTime: '10:00', status: 'Nowa - czekam na zadatek', addons: { crib: false, bath: false, chair: false } },
+      { id: '6', cabinId: 9, cabinNumber: '9', firstName: 'Michał', lastName: 'Zieliński', phone: '222 333 444', email: 'michal@ex.com', capacity: '4', guestCount: '4', startDate: addDays(-6), startTime: '15:00', endDate: addDays(-1), endTime: '09:30', status: 'Do sprzątnięcia', addons: { crib: false, bath: false, chair: false } },
+      { id: '7', cabinId: 8, cabinNumber: '8', firstName: 'Magda', lastName: 'Szymańska', phone: '333 444 555', email: 'magda@ex.com', capacity: '4', guestCount: '2', startDate: addDays(-10), startTime: '15:00', endDate: addDays(-5), endTime: '10:00', status: 'Zrealizowana - goście wymeldowani', addons: { crib: false, bath: false, chair: false }, cleaningStatus: 'rozliczono' },
+    ];
+
+    const INITIAL_RESERVATIONS = baseReservations.map(r => {
+      let cStatus = r.cleaningStatus || null;
+      if (r.status === 'Do sprzątnięcia' && !cStatus) cStatus = 'do sprzątnięcia';
+      if (r.status === 'Zrealizowana - goście wymeldowani' && !cStatus) cStatus = 'rozliczono';
+      
+      return {
+        ...r,
+        cleaningStatus: cStatus,
+        totalPrice: calculatePrice(r.startDate, r.endDate, r.capacity, r.addons),
+        deposit: Math.round(calculatePrice(r.startDate, r.endDate, r.capacity, r.addons) * 0.3),
+        createdAt: getCreationTime(r.status)
+      }
+    });
+
+    const getInitialTimelineRange = (resList) => {
+      if (!resList || resList.length === 0) {
+        const s = new Date(); s.setDate(1);
+        const e = new Date(); e.setMonth(e.getMonth() + 1); e.setDate(0);
+        return [s.toISOString().split('T')[0], e.toISOString().split('T')[0]];
+      }
+      const starts = resList.map(r => new Date(r.startDate).getTime());
+      const ends = resList.map(r => new Date(r.endDate).getTime());
+      const minDate = new Date(Math.min(...starts));
+      const maxDate = new Date(Math.max(...ends));
+      minDate.setDate(minDate.getDate() - 3);
+      maxDate.setDate(maxDate.getDate() + 3);
+      return [minDate.toISOString().split('T')[0], maxDate.toISOString().split('T')[0]];
+    };
+
+    const MONTH_NAMES = ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'];
+
+    const getGridSpecs = (startStr, endStr) => {
+      const start = new Date(startStr); start.setHours(0,0,0,0);
+      const end = new Date(endStr); end.setHours(0,0,0,0);
+      if (end < start) return { type: 'days', columns: [], monthsHeader: [], diffDays: 0 };
+      
+      const diffDays = Math.round((end - start) / 86400000);
+      let type = 'days';
+      if (diffDays > 90) type = 'months';
+      else if (diffDays > 35) type = 'weeks';
+      
+      const columns = [];
+      const monthsHeader = [];
+      const totalMs = (diffDays + 1) * 86400000;
+      const shortDays = ['Nd', 'Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb'];
+      
+      if (type === 'days') {
+        let currentMonthStr = '';
+        let currentMonthDays = 0;
+
+        for (let i = 0; i <= diffDays; i++) {
+          const d = new Date(start); d.setDate(start.getDate() + i);
+          const mStr = `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+          if (mStr !== currentMonthStr) {
+            if (currentMonthStr !== '') monthsHeader.push({ label: currentMonthStr, widthPercent: (currentMonthDays / (diffDays + 1)) * 100 });
+            currentMonthStr = mStr; currentMonthDays = 1;
+          } else currentMonthDays++;
+
+          columns.push({
+            id: `d-${i}`, dayName: shortDays[d.getDay()], label: String(d.getDate()),
+            dateStr: d.toISOString().split('T')[0], 
+            isWeekend: d.getDay() === 0 || d.getDay() === 6, widthPercent: (86400000 / totalMs) * 100
+          });
+        }
+        if (currentMonthDays > 0) monthsHeader.push({ label: currentMonthStr, widthPercent: (currentMonthDays / (diffDays + 1)) * 100 });
+      } else if (type === 'weeks') {
+        let currentMonthStr = ''; let currentMonthMs = 0;
+        for (let i = 0; i <= diffDays; i += 7) {
+          const d = new Date(start); d.setDate(start.getDate() + i);
+          const nextWeek = new Date(d); nextWeek.setDate(d.getDate() + 6);
+          const actualEnd = nextWeek > end ? end : nextWeek;
+          const spanDays = Math.round((actualEnd - d) / 86400000) + 1;
+          const spanMs = spanDays * 86400000;
+          const mStr = `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+          if (mStr !== currentMonthStr) {
+            if (currentMonthStr !== '') monthsHeader.push({ label: currentMonthStr, widthPercent: (currentMonthMs / totalMs) * 100 });
+            currentMonthStr = mStr; currentMonthMs = spanMs;
+          } else currentMonthMs += spanMs;
+
+          const isCurrentWeek = new Date() >= d && new Date() <= actualEnd;
+
+          columns.push({
+            id: `w-${i}`, dayName: 'Tydz.', label: `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}`,
+            isToday: isCurrentWeek,
+            isWeekend: false, widthPercent: (spanMs / totalMs) * 100
+          });
+        }
+        if (currentMonthMs > 0) monthsHeader.push({ label: currentMonthStr, widthPercent: (currentMonthMs / totalMs) * 100 });
+      } else if (type === 'months') {
+        let curr = new Date(start.getFullYear(), start.getMonth(), 1);
+        const endMonth = new Date(end.getFullYear(), end.getMonth(), 1);
+        let idx = 0;
+        while (curr <= endMonth) {
+          const monthStart = new Date(Math.max(curr.getTime(), start.getTime()));
+          const nextMonth = new Date(curr.getFullYear(), curr.getMonth() + 1, 1);
+          const monthEnd = new Date(Math.min(nextMonth.getTime() - 86400000, end.getTime()));
+          const spanDays = Math.round((monthEnd - monthStart) / 86400000) + 1;
+          
+          const isCurrentMonth = new Date().getMonth() === curr.getMonth() && new Date().getFullYear() === curr.getFullYear();
+
+          columns.push({
+            id: `m-${idx++}`, dayName: String(curr.getFullYear()), label: MONTH_NAMES[curr.getMonth()],
+            isToday: isCurrentMonth,
+            isWeekend: false, widthPercent: ((spanDays * 86400000) / totalMs) * 100
+          });
+          curr = nextMonth;
+        }
+      }
+      return { type, columns, monthsHeader, diffDays };
+    };
+
+    // UI helpers dla tabeli statusów i osi czasu
+    const getStatusClasses = (statusStr) => {
+      if (!statusStr) return 'bg-white text-slate-600 border-slate-300';
+      if (statusStr.includes('Nowa')) return 'text-red-700 bg-red-50 border-red-300 hover:bg-red-100';
+      if (statusStr.includes('Potwierdzona')) return 'text-orange-700 bg-orange-50 border-orange-300 hover:bg-orange-100';
+      if (statusStr.includes('W trakcie')) return 'text-emerald-700 bg-emerald-50 border-emerald-300 hover:bg-emerald-100';
+      if (statusStr.includes('Zrealizowana')) return 'text-blue-700 bg-blue-50 border-blue-300 hover:bg-blue-100';
+      if (statusStr.includes('sprzątnięcia')) return 'text-purple-700 bg-purple-50 border-purple-300 hover:bg-purple-100';
+      if (statusStr.includes('Anulowana')) return 'text-slate-600 bg-slate-100 border-slate-300 hover:bg-slate-200';
+      return 'text-slate-600 bg-slate-50 border-slate-200 hover:bg-slate-100';
+    };
+
+    const getStatusIcon = (statusStr) => {
+      if (!statusStr) return null;
+      if(statusStr.includes('Nowa')) return <Icons.StatusNew />;
+      if(statusStr.includes('Potwierdzona')) return <Icons.StatusConfirmed />;
+      if(statusStr.includes('W trakcie')) return <Icons.StatusInProgress />;
+      if(statusStr.includes('Zrealizowana')) return <Icons.StatusDone />;
+      if(statusStr.includes('sprzątnięcia')) return <Icons.Broom />;
+      if(statusStr.includes('rozliczenia')) return <Icons.WrenchIcon />;
+      if(statusStr.includes('rozliczono')) return <Icons.CheckDouble />;
+      if(statusStr.includes('Anulowana')) return <Icons.StatusCanceled />;
+      return null;
+    };
+
+    function App() {
+      const [reservations, setReservations] = React.useState(INITIAL_RESERVATIONS);
+      const [assistantData, setAssistantData] = React.useState({ capacity: '4', startDate: '', endDate: '' });
+      const [assistantResults, setAssistantResults] = React.useState(null);
+      const [isModalOpen, setIsModalOpen] = React.useState(false);
+      const [statusDropdownOpen, setStatusDropdownOpen] = React.useState(false);
+      const [selectedCabin, setSelectedCabin] = React.useState(null);
+      const [editingId, setEditingId] = React.useState(null);
+      const [focusedField, setFocusedField] = React.useState(null);
+      const [sortConfig, setSortConfig] = React.useState({ key: 'startDate', direction: 'asc' });
+      const [filterStatus, setFilterStatus] = React.useState('All');
+      const [cleaningFilter, setCleaningFilter] = React.useState('All');
+      const [mapCapacityFilter, setMapCapacityFilter] = React.useState(null); 
+      const [mapReferenceDate, setMapReferenceDate] = React.useState(getTodayString());
+
+      const initialRange = React.useMemo(() => getInitialTimelineRange(reservations), [reservations]);
+      const [timelineStart, setTimelineStart] = React.useState(initialRange[0]);
+      const [timelineEnd, setTimelineEnd] = React.useState(initialRange[1]);
+      const [isAllTimelineView, setIsAllTimelineView] = React.useState(false);
+
+      const [formData, setFormData] = React.useState({
+        firstName: '', lastName: '', phone: '', email: '', guestCount: '4',
+        startDate: '', startTime: '15:00', endDate: '', endTime: '10:00', status: 'Nowa - czekam na zadatek',
+        addons: { crib: false, bath: false, chair: false }
+      });
+
+      const SortIcon = ({ column }) => {
+        if (sortConfig.key !== column) return <Icons.SortDefault />;
+        return sortConfig.direction === 'asc' ? <Icons.SortAsc /> : <Icons.SortDesc />;
+      };
+
+      React.useEffect(() => {
+        const checkStatuses = () => {
+          const now = new Date();
+          setReservations(prev => {
+            let changed = false;
+            const updated = prev.map(r => {
+              if (r.status === 'W trakcie - zapłacona w całości') {
+                const endDateTime = new Date(`${r.endDate}T${r.endTime}`);
+                if (now > endDateTime) {
+                  changed = true;
+                  return { ...r, status: 'Do sprzątnięcia', cleaningStatus: 'do sprzątnięcia' };
+                }
+              }
+              return r;
+            });
+            return changed ? updated : prev;
+          });
+        };
+        checkStatuses(); 
+        const interval = setInterval(checkStatuses, 60000); 
+        return () => clearInterval(interval);
+      }, []);
+
+      const handleCabinClick = (cabin, predefinedData = null) => {
+        setSelectedCabin(cabin);
+        setFormData({
+          firstName: '', lastName: '', phone: '', email: '', 
+          guestCount: String(cabin.capacity), 
+          startDate: predefinedData?.startDate || '', startTime: '15:00', 
+          endDate: predefinedData?.endDate || '', endTime: '10:00', 
+          status: 'Nowa - czekam na zadatek', addons: { crib: false, bath: false, chair: false }
+        });
+        setEditingId(null); setStatusDropdownOpen(false); setIsModalOpen(true);
+      };
+
+      const handleEditClick = (reservation) => {
+        const cabin = CABINS.find(c => c.id === reservation.cabinId);
+        setSelectedCabin(cabin);
+        setFormData({
+          firstName: reservation.firstName || '', lastName: reservation.lastName || '',
+          phone: reservation.phone || '', email: reservation.email || '',
+          guestCount: reservation.guestCount || String(cabin.capacity),
+          startDate: reservation.startDate, startTime: reservation.startTime || '15:00',
+          endDate: reservation.endDate, endTime: reservation.endTime || '10:00',
+          status: reservation.status, addons: reservation.addons || { crib: false, bath: false, chair: false }
+        });
+        setEditingId(reservation.id); setStatusDropdownOpen(false); setIsModalOpen(true);
+      };
+
+      const handleTimelineReservationClick = (res, e) => {
+        e.stopPropagation();
+        const start = new Date(res.startDate).getTime();
+        const end = new Date(res.endDate).getTime();
+        const duration = end - start;
+        const padding = ((duration / 0.8) - duration) / 2;
+        setTimelineStart(new Date(start - padding).toISOString().split('T')[0]);
+        setTimelineEnd(new Date(end + padding).toISOString().split('T')[0]);
+        setIsAllTimelineView(false); handleEditClick(res);
+      };
+
+      const handleCloseModal = () => {
+        setIsModalOpen(false); setSelectedCabin(null); setEditingId(null); setAssistantResults(null); 
+      };
+
+      const handleAssistantInputChange = (e) => {
+        const { name, value } = e.target;
+        setAssistantData(prev => {
+          const newData = { ...prev, [name]: value };
+          if (name === 'startDate' && value && !prev.endDate) {
+            const startD = new Date(value);
+            if (!isNaN(startD.getTime())) {
+              const endD = new Date(startD); endD.setDate(startD.getDate() + 5);
+              newData.endDate = endD.toISOString().split('T')[0];
+            }
+          }
+          return newData;
+        });
+        setAssistantResults(null);
+      };
+
+      const handleInputChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => {
+          let newData = { ...prev };
+          if (type === 'checkbox') newData.addons = { ...newData.addons, [name]: checked };
+          else newData[name] = value;
+          if (name === 'startDate' && value && !prev.endDate) {
+            const startD = new Date(value);
+            if (!isNaN(startD.getTime())) {
+              const endD = new Date(startD); endD.setDate(startD.getDate() + 5);
+              newData.endDate = endD.toISOString().split('T')[0];
+            }
+          }
+          return newData;
+        });
+      };
+
+      const handleSaveReservation = (e) => {
+        e.preventDefault();
+        if (!formData.firstName || !formData.lastName || !formData.startDate || !formData.endDate || !formData.phone) {
+          alert("Proszę wypełnić wszystkie wymagane pola oznaczone gwiazdką."); return;
+        }
+        const start = new Date(formData.startDate);
+        const end = new Date(formData.endDate);
+        if (start >= end) { alert("Data wyjazdu musi być późniejsza niż data przyjazdu."); return; }
+        const totalPrice = calculatePrice(formData.startDate, formData.endDate, selectedCabin?.capacity || 4, formData.addons);
+        const deposit = Math.round(totalPrice * 0.3);
+        let cStatus = null;
+        if (formData.status === 'Do sprzątnięcia') cStatus = 'do sprzątnięcia';
+        else if (formData.status === 'Zrealizowana - goście wymeldowani') cStatus = 'rozliczono';
+        const finalStatus = editingId ? formData.status : 'Nowa - czekam na zadatek';
+        
+        if (editingId) {
+          setReservations(prev => prev.map(res => res.id === editingId ? { ...res, ...formData, status: finalStatus, capacity: selectedCabin.capacity, cleaningStatus: cStatus || res.cleaningStatus, totalPrice, deposit, updatedAt: new Date().toISOString() } : res));
+        } else {
+          setReservations(prev => [...prev, { id: Date.now().toString(), cabinId: selectedCabin.id, cabinNumber: selectedCabin.number, ...formData, status: finalStatus, capacity: selectedCabin.capacity, cleaningStatus: cStatus, totalPrice, deposit, createdAt: new Date().toISOString() }]);
+        }
+        handleCloseModal();
+      };
+
+      const deleteReservation = (id) => {
+        if(window.confirm("Czy na pewno chcesz usunąć tę rezerwację?")) {
+          setReservations(prev => prev.filter(r => r.id !== id));
+          if(isModalOpen) handleCloseModal();
+        }
+      };
+
+      const getValidationClass = (val) => val && val.toString().trim().length > 0 ? 'border-emerald-400 focus:ring-emerald-500/20' : 'border-red-400 focus:ring-red-500/20';
+
+      const getCabinMapStatus = (cabinId) => {
+        const refDateObj = new Date(`${mapReferenceDate}T12:00:00`);
+        const cabinRes = reservations.filter(r => r.cabinId === cabinId && r.status !== 'Anulowana');
+        if (cabinRes.length === 0) return 'free';
+        for (let r of cabinRes) {
+          const s = new Date(`${r.startDate}T${r.startTime}`);
+          const e = new Date(`${r.endDate}T${r.endTime}`);
+          if (refDateObj >= s && refDateObj <= e) return 'occupied'; 
+        }
+        return 'free'; 
+      };
+
+      const handleAssistantSearch = (e) => {
+        e.preventDefault();
+        if (!assistantData.startDate || !assistantData.endDate) { alert("Wybierz datę od i do."); return; }
+        const reqStart = assistantData.startDate;
+        const reqEnd = assistantData.endDate;
+        const reqCapacity = parseInt(assistantData.capacity); 
+        const available = CABINS.filter(cabin => {
+          if (cabin.capacity < reqCapacity) return false;
+          const cabinRes = reservations.filter(r => r.cabinId === cabin.id && r.status !== 'Anulowana');
+          return !cabinRes.some(res => !(res.endDate <= reqStart || res.startDate >= reqEnd));
+        });
+        setAssistantResults(available.sort((a,b) => a.capacity - b.capacity));
+      };
+
+      const renderAssistantMessage = () => {
+        if (!assistantResults || assistantResults.length === 0) return null;
+        const req = parseInt(assistantData.capacity);
+        const count4 = assistantResults.filter(c => c.capacity === 4).length;
+        const count5 = assistantResults.filter(c => c.capacity === 5).length;
+        const count7 = assistantResults.filter(c => c.capacity === 7).length;
+        return (
+          <div className="mb-4 text-slate-700 text-xs md:text-sm font-medium bg-white p-4 md:p-5 rounded-xl border border-slate-300 shadow-sm leading-relaxed w-full">
+            <div className="font-bold text-base text-slate-800">Znaleziono {assistantResults.length} wolnych domków dla {req} osób:</div>
+            <ul className="space-y-1 ml-2 mt-2 text-sm">
+               {count4 > 0 && req <= 4 && <li><strong className="text-emerald-600">{count4} szt.</strong> (zielone) 4-osobowe {req === 4 ? '(idealne)' : ''}</li>}
+               {count5 > 0 && req <= 5 && <li><strong className="text-amber-500">{count5} szt.</strong> (pomarańczowe) 5-osobowe {req === 5 ? '(idealne)' : ''}</li>}
+               {count7 > 0 && req <= 7 && <li><strong className={req === 4 ? 'text-purple-600' : 'text-amber-500'}>{count7} szt.</strong> ({req === 4 ? 'fioletowe' : 'pomarańczowe'}) 7-osobowe {req === 7 ? '(idealne)' : ''}</li>}
+            </ul>
+          </div>
+        );
+      };
+
+      const getAssistantCabinColor = (cabinCap, reqCap) => {
+        if (cabinCap === reqCap) return 'bg-emerald-500 text-white shadow-md z-10 cursor-pointer hover:scale-105';
+        if (reqCap === 4 && cabinCap === 5) return 'bg-amber-500 text-white shadow-md z-10 cursor-pointer hover:scale-105';
+        if (reqCap === 4 && cabinCap === 7) return 'bg-purple-500 text-white shadow-md z-10 cursor-pointer hover:scale-105';
+        if (reqCap === 5 && cabinCap === 7) return 'bg-amber-500 text-white shadow-md z-10 cursor-pointer hover:scale-105';
+        return 'bg-slate-300/60 text-slate-500 cursor-not-allowed';
+      };
+
+      const shiftTimeline = (days) => {
+        const s = new Date(timelineStart); const e = new Date(timelineEnd);
+        s.setDate(s.getDate() + days); e.setDate(e.getDate() + days);
+        setTimelineStart(s.toISOString().split('T')[0]); setTimelineEnd(e.toISOString().split('T')[0]);
+        setIsAllTimelineView(false);
+      };
+
+      const centerToday = () => {
+        const currentDays = Math.max(1, Math.ceil((new Date(timelineEnd) - new Date(timelineStart)) / (1000 * 60 * 60 * 24)));
+        const s = new Date(); s.setDate(s.getDate() - Math.floor(currentDays / 2));
+        const e = new Date(); e.setDate(e.getDate() + Math.ceil(currentDays / 2));
+        setTimelineStart(s.toISOString().split('T')[0]); setTimelineEnd(e.toISOString().split('T')[0]);
+        setIsAllTimelineView(false);
+      };
+
+      const showAllTimeline = () => {
+        const range = getInitialTimelineRange(reservations);
+        setTimelineStart(range[0]); setTimelineEnd(range[1]);
+        setIsAllTimelineView(true); 
+      };
+
+      const getReservationStyleParams = (res) => {
+        const tStart = new Date(timelineStart);
+        const tEnd = new Date(timelineEnd); tEnd.setDate(tEnd.getDate() + 1);
+        const rStart = new Date(res.startDate); const rEnd = new Date(res.endDate);
+        if (rEnd <= tStart || rStart >= tEnd) return null;
+        const totalMs = tEnd - tStart;
+        let startPercent = 0, widthPercent = 0;
+        if (rStart < tStart) {
+          startPercent = 0; widthPercent = ((Math.min(rEnd, tEnd) - tStart) / totalMs) * 100;
+        } else {
+          startPercent = ((rStart - tStart) / totalMs) * 100; widthPercent = ((Math.min(rEnd, tEnd) - rStart) / totalMs) * 100;
+        }
+        if (startPercent + widthPercent > 100) widthPercent = 100 - startPercent;
+        return { left: `${startPercent}%`, width: `${widthPercent}%` };
+      };
+
+      const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
+        setSortConfig({ key, direction });
+      };
+
+      const sortedAndFilteredReservations = React.useMemo(() => {
+        let result = [...reservations];
+        if (filterStatus !== 'All') result = result.filter(r => r.status === filterStatus);
+        
+        result.sort((a, b) => {
+          let aVal = a[sortConfig.key]; let bVal = b[sortConfig.key];
+          if(sortConfig.key === 'guestName') { aVal = a.lastName; bVal = b.lastName; } 
+          if(sortConfig.key === 'cabinId') { aVal = Number(a.cabinId); bVal = Number(b.cabinId); }
+          if(sortConfig.key === 'totalPrice') { aVal = Number(a.totalPrice); bVal = Number(b.totalPrice); }
+          if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+          if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+          return 0;
+        });
+        return result;
+      }, [reservations, sortConfig, filterStatus]);
+
+      const todayStr = getTodayString();
+      const peopleOnSite = reservations.reduce((sum, res) => (res.startDate <= todayStr && res.endDate >= todayStr && res.status !== 'Anulowana') ? sum + parseInt(res.guestCount || res.capacity || 0) : sum, 0);
+      const arrivalsToday = reservations.filter(r => r.startDate === todayStr && r.status !== 'Anulowana').sort((a,b) => a.startTime.localeCompare(b.startTime));
+      const earliestArrival = arrivalsToday.length > 0 ? arrivalsToday[0] : null;
+      const departuresToday = reservations.filter(r => r.endDate === todayStr && r.status !== 'Anulowana').sort((a,b) => b.endTime.localeCompare(a.endTime));
+      const latestDeparture = departuresToday.length > 0 ? departuresToday[0] : null;
+
+      const handleCleaningStatusChange = (resId, newStatus) => {
+        setReservations(prev => prev.map(r => r.id === resId ? { ...r, cleaningStatus: newStatus } : r));
+      };
+
+      const cleaningJobsRaw = reservations.filter(r => r.cleaningStatus);
+      const cleaningJobs = cleaningFilter === 'All' ? cleaningJobsRaw : cleaningJobsRaw.filter(r => r.cleaningStatus === cleaningFilter);
+
+      const countDoSprzatania = cleaningJobsRaw.filter(r => r.cleaningStatus === 'do sprzątnięcia').length;
+      const countZrobione = cleaningJobsRaw.filter(r => r.cleaningStatus === 'zrobione & do rozliczenia').length;
+      const countRozliczono = cleaningJobsRaw.filter(r => r.cleaningStatus === 'rozliczono').length;
+
+      const { type: gridType, columns: gridColumns, monthsHeader } = getGridSpecs(timelineStart, timelineEnd);
+      const containerMinW = isAllTimelineView ? 'min-w-full' : (gridType === 'days' ? 'min-w-[900px] md:min-w-[1000px]' : 'min-w-full');
+
+      const getCleaningTimeRange = (res) => {
+        const fromTime = `${formatDatePL(res.endDate)} ${res.endTime}`;
+        const nextRes = reservations.filter(x => x.cabinId === res.cabinId && x.startDate >= res.endDate && x.id !== res.id).sort((a,b) => new Date(a.startDate) - new Date(b.startDate))[0];
+        const toTime = nextRes ? `${formatDatePL(nextRes.startDate)} ${nextRes.startTime}` : 'Brak kolejnego';
+        return { from: fromTime, to: toTime };
+      };
+
+      return (
+        <div className="min-h-screen bg-slate-50 p-2 md:p-6 lg:p-8 font-sans text-slate-800 text-sm">
+          
+          <main className="max-w-7xl mx-auto space-y-6 md:space-y-8">
+            
+            {/* 1. Asystent Planowania */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-300 overflow-hidden flex flex-col">
+              <div className="bg-slate-50 border-b border-slate-300 p-4 flex items-center gap-3">
+                <div className="text-teal-700"><Icons.Search /></div>
+                <h2 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Asystent Planowania</h2>
+              </div>
+              <div className="p-4 md:p-6">
+                <form onSubmit={handleAssistantSearch} className="flex flex-col sm:flex-row flex-wrap gap-4 items-end mb-6">
+                  <div className="w-full sm:w-auto min-w-[120px]">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Ilość osób</label>
+                    <select name="capacity" value={assistantData.capacity} onChange={handleAssistantInputChange} className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 outline-none text-sm font-bold min-h-[52px] shadow-sm">
+                      <option value="4">4 osoby</option><option value="5">5 osób</option><option value="7">7 osób</option>
+                    </select>
+                  </div>
+                  <div className="w-full sm:flex-1 min-w-[180px]">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Zameldowanie</label>
+                    <div className="relative flex items-center w-full bg-white border border-slate-300 rounded-xl focus-within:border-teal-500 shadow-sm transition-colors">
+                      <input type="date" name="startDate" value={assistantData.startDate} onChange={handleAssistantInputChange} required className="w-full pl-4 pr-11 py-3 bg-transparent outline-none text-sm font-bold cursor-pointer min-h-[52px] relative z-10 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0" />
+                      <Icons.CalendarInput className="absolute right-4 text-teal-600 w-6 h-6 z-0" />
+                    </div>
+                  </div>
+                  <div className="w-full sm:flex-1 min-w-[180px]">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Doba hotelowa</label>
+                    <div className="relative flex items-center w-full bg-white border border-slate-300 rounded-xl focus-within:border-teal-500 shadow-sm transition-colors">
+                      <input type="date" name="endDate" value={assistantData.endDate} onChange={handleAssistantInputChange} required className="w-full pl-4 pr-11 py-3 bg-transparent outline-none text-sm font-bold cursor-pointer min-h-[52px] relative z-10 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0" />
+                      <Icons.CalendarInput className="absolute right-4 text-teal-600 w-6 h-6 z-0" />
+                    </div>
+                  </div>
+                  <button type="submit" className="w-full sm:w-auto px-10 py-3 bg-teal-700 hover:bg-teal-800 text-white rounded-xl text-sm font-bold shadow-md min-h-[52px] transition-all">Szukaj</button>
+                </form>
+                {assistantResults !== null && (
+                  <div>
+                    {assistantResults.length === 0 ? <div className="bg-rose-50 border border-rose-200 rounded-xl p-5 text-center text-rose-800 font-bold shadow-sm">Brak wolnych domków.</div> : 
+                      <> {renderAssistantMessage()}
+                        <div className="w-full overflow-x-auto max-h-[70svh] md:max-h-none bg-slate-50 rounded-2xl border border-slate-300 relative shadow-sm">
+                          <div className="relative min-w-[900px] w-full aspect-[1.6/1]">
+                            <div className="absolute inset-0 bg-cover bg-center opacity-40 grayscale" style={{ backgroundImage: `url('https://greckiedomkizeus.pl/assets/images/APP%20ZEUS%20map.jpg')` }} />
+                            {CABINS.map(cabin => {
+                              const reqCap = parseInt(assistantData.capacity);
+                              const isAvailable = assistantResults.some(r => r.id === cabin.id);
+                              const bgClass = isAvailable ? getAssistantCabinColor(cabin.capacity, reqCap) : 'bg-slate-300/60 text-slate-500 cursor-not-allowed';
+                              return <button key={cabin.id} onClick={() => isAvailable && handleCabinClick(cabin, { startDate: assistantData.startDate, endDate: assistantData.endDate })} disabled={!isAvailable} className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-2xl flex items-center justify-center font-bold text-xs md:text-sm border-2 border-white transition-transform ${bgClass}`} style={{ left: cabin.left, top: cabin.top }}>{cabin.number}</button>;
+                            })}
+                          </div>
+                        </div>
+                      </>
+                    }
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 2. Map Container */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-300 overflow-hidden flex flex-col relative">
+              <div className="p-3 md:p-5 bg-white border-b border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
+                 <div className="flex gap-2 items-center w-full md:w-auto overflow-x-auto hide-scrollbar">
+                    {['4','5','7'].map(c => <button key={c} onClick={() => setMapCapacityFilter(mapCapacityFilter === c ? null : c)} className={`px-5 py-2.5 text-xs rounded-xl border font-bold min-h-[44px] whitespace-nowrap transition-all ${mapCapacityFilter === c ? 'bg-teal-100 border-teal-400 text-teal-800' : 'bg-white border-slate-300 text-slate-500'}`}>{c} osobowe</button>)}
+                 </div>
+                 <div className="flex items-center gap-2 ml-auto shrink-0">
+                    <span className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">stań na dzień:</span>
+                    <div className="relative flex items-center bg-white border border-slate-300 rounded-xl focus-within:border-teal-500 shadow-sm transition-colors min-w-[150px] min-h-[44px]">
+                      <input type="date" value={mapReferenceDate} onChange={e => setMapReferenceDate(e.target.value)} className="w-full pl-4 pr-10 py-2 bg-transparent outline-none text-xs font-bold cursor-pointer min-h-[44px] relative z-10 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0" />
+                      <Icons.CalendarInput className="absolute right-3 text-teal-600 w-5 h-5 pointer-events-none z-0" />
+                    </div>
+                 </div>
+              </div>
+              <div className="w-full overflow-x-auto overflow-y-hidden h-[100svh] md:h-auto bg-transparent relative">
+                <div className="absolute top-4 left-4 z-10 bg-white/95 p-3 rounded-xl shadow-md border border-slate-200 flex flex-col gap-2 text-xs font-bold text-slate-800">
+                  <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-emerald-500"></span> Wolny</div>
+                  <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-rose-600"></span> Zajęty</div>
+                </div>
+                <div className="relative min-w-[900px] w-full aspect-[1.6/1]">
+                  <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('https://greckiedomkizeus.pl/assets/images/APP%20ZEUS%20map.jpg')` }} />
+                  {CABINS.map(cabin => {
+                    const isFilteredOut = mapCapacityFilter && String(cabin.capacity) !== mapCapacityFilter;
+                    const mapStatus = getCabinMapStatus(cabin.id);
+                    let bgClass = 'bg-emerald-500 shadow-md text-white'; 
+                    if (mapStatus === 'occupied') bgClass = 'bg-rose-600 shadow-md text-white'; 
+                    if (isFilteredOut) bgClass = 'bg-slate-300/40 text-slate-400 grayscale opacity-60';
+                    return <button key={cabin.id} onClick={() => handleCabinClick(cabin)} disabled={isFilteredOut} className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 md:w-11 md:h-11 rounded-xl md:rounded-2xl flex items-center justify-center font-bold text-xs md:text-sm border-2 border-white shadow-lg transition-all ${bgClass} ${isFilteredOut ? 'cursor-not-allowed' : 'hover:scale-110 hover:z-20'}`} style={{ left: cabin.left, top: cabin.top }}>{cabin.number}</button>;
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Tabela Aktualnych Rezerwacji */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-300 flex flex-col overflow-hidden">
+              <div className="bg-slate-50 border-b border-slate-300 p-4 md:px-6">
+                 <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-3">
+                       <div className="text-teal-700"><Icons.CalendarLine className="w-6 h-6" /></div>
+                       <h2 className="text-lg md:text-xl font-bold text-slate-800 uppercase tracking-tight">Aktualne Rezerwacje</h2>
+                    </div>
+                    <div className="flex flex-col md:flex-row gap-3 w-full bg-white p-4 rounded-xl border border-slate-200 shadow-inner">
+                       <div className="flex-1 flex flex-col xl:flex-row gap-3 xl:gap-8 items-start xl:items-center">
+                          <div className="flex items-center gap-3 w-full overflow-x-auto hide-scrollbar pb-1 xl:pb-0">
+                             <span className="text-slate-500 font-bold uppercase text-[9px] tracking-widest whitespace-nowrap">RUCH DZISIAJ:</span>
+                             {earliestArrival ? <button onClick={() => handleEditClick(earliestArrival)} className="px-3 py-1.5 bg-emerald-50 border border-emerald-300 text-emerald-800 font-bold rounded-lg text-xs cursor-pointer shadow-sm hover:bg-emerald-100 transition-all whitespace-nowrap">Nr {earliestArrival.cabinNumber} - {earliestArrival.startTime}</button> : <span className="text-slate-400 font-bold text-xs whitespace-nowrap">Brak</span>}
+                             <span className="text-slate-300 mx-1">|</span>
+                             {latestDeparture ? <button onClick={() => handleEditClick(latestDeparture)} className="px-3 py-1.5 bg-amber-50 border border-amber-300 text-amber-800 font-bold rounded-lg text-xs cursor-pointer shadow-sm hover:bg-amber-100 transition-all whitespace-nowrap">Nr {latestDeparture.cabinNumber} - {latestDeparture.endTime}</button> : <span className="text-slate-400 font-bold text-xs whitespace-nowrap">Brak</span>}
+                          </div>
+                       </div>
+                       <div className="md:ml-auto flex items-center justify-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 min-w-max">
+                          <Icons.UsersIcon />
+                          <span className="font-bold text-teal-800 text-lg">{peopleOnSite}</span>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">gości</span>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+
+              <div className="p-4 md:p-6">
+                <div className="flex flex-wrap gap-2 w-full mb-6">
+                   <button onClick={() => setFilterStatus('All')} className={`px-4 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg border transition-all ${filterStatus === 'All' ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-500 border-slate-300'}`}>Wszystkie</button>
+                   {STATUS_OPTIONS.map(s => <button key={s} onClick={() => setFilterStatus(s)} className={`px-3 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg border transition-all flex items-center whitespace-nowrap ${filterStatus === s ? `${getStatusClasses(s)} ring-1 ring-current/20` : 'bg-white text-slate-500 border-slate-300'}`}>{getStatusIcon(s)} {s.split(' - ')[0]}</button>)}
+                </div>
+                
+                <div className="w-full overflow-x-auto border border-slate-300 rounded-xl shadow-sm">
+                    <table className="w-full text-left border-collapse table-auto min-w-[700px]">
+                      <thead>
+                        <tr className="bg-slate-50 text-slate-500 text-[10px] uppercase font-bold border-b border-slate-300">
+                          <th className="sticky left-0 z-20 bg-slate-50 p-4 whitespace-nowrap shadow-[1px_0_0_0_#cbd5e1] cursor-pointer" onClick={() => handleSort('cabinId')}>Domek <SortIcon column="cabinId" /></th>
+                          <th className="p-4 cursor-pointer hover:text-teal-700" onClick={() => handleSort('guestName')}>Gość / Kontakt <SortIcon column="guestName" /></th>
+                          <th className="p-4 cursor-pointer hover:text-teal-700" onClick={() => handleSort('startDate')}>Termin pobytu <SortIcon column="startDate" /></th>
+                          <th className="p-4 whitespace-nowrap cursor-pointer hover:text-teal-700" onClick={() => handleSort('totalPrice')}>Koszt / Zadatek <SortIcon column="totalPrice" /></th>
+                          <th className="p-4 w-[200px] cursor-pointer hover:text-teal-700" onClick={() => handleSort('status')}>Status <SortIcon column="status" /></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200 text-[11px] md:text-xs">
+                        {sortedAndFilteredReservations.map(res => (
+                          <tr key={res.id} onClick={() => handleEditClick(res)} className="bg-white hover:bg-slate-50 transition-colors group cursor-pointer">
+                            <td className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 p-4 shadow-[1px_0_0_0_#cbd5e1] font-bold text-teal-700 transition-colors">Nr {res.cabinNumber} <div className="text-[9px] text-slate-400 font-semibold mt-0.5">({res.capacity} os.)</div></td>
+                            <td className="p-4 font-semibold text-slate-800 break-words">{res.firstName} {res.lastName} <div className="text-[10px] text-slate-400 mt-1 font-medium">{res.phone}</div></td>
+                            <td className="p-4 whitespace-nowrap">
+                               <div className="mb-2 font-medium"><strong className="text-slate-800">{formatDatePL(res.startDate)}</strong> <span className="text-[10px] text-slate-500 ml-1">{res.startTime}</span></div>
+                               <div className="font-medium"><strong className="text-slate-800">{formatDatePL(res.endDate)}</strong> <span className="text-[10px] text-slate-500 ml-1">{res.endTime}</span></div>
+                            </td>
+                            <td className="p-4 whitespace-nowrap font-bold text-slate-800">{res.totalPrice.toLocaleString('pl-PL')} zł <div className="text-[10px] text-amber-600 mt-1 font-semibold">Zad: {res.deposit.toLocaleString('pl-PL')} zł</div></td>
+                            <td className="p-4">
+                              <span className={`w-full px-3 py-2 rounded-xl text-[10px] font-bold flex items-center border leading-tight ${getStatusClasses(res.status)}`}>{getStatusIcon(res.status)} {res.status}</span>
+                              {res.status.includes('Nowa') && <CountdownTimer createdAt={res.createdAt} />}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+              </div>
+            </div>
+
+            {/* 4. Timeline Container */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-300 overflow-hidden flex flex-col">
+               <div className="bg-slate-50 border-b border-slate-300 p-4 md:px-6 flex flex-row items-center justify-between gap-4 w-full">
+                  <h2 className="text-lg font-bold text-slate-800 uppercase shrink-0">Oś czasu</h2>
+                  <div className="flex flex-row items-center justify-end gap-2 md:gap-4 shrink-0 min-w-max ml-auto">
+                    <div className="flex gap-2">
+                      <button onClick={centerToday} className="flex items-center px-4 py-2 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-xl text-[11px] font-bold transition-all shadow-sm"><Icons.CalendarLine /> Dzisiaj</button>
+                      <button onClick={showAllTimeline} className="flex items-center px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[11px] font-bold transition-all shadow-sm"><Icons.Expand /> Wszystkie</button>
+                    </div>
+                    <div className="flex items-center bg-white rounded-xl border border-slate-300 shadow-sm">
+                       <button onClick={() => shiftTimeline(-1)} className="p-3 hover:bg-slate-50 rounded-l-xl text-slate-500 border-r border-slate-200 transition-colors"><Icons.ChevronLeft /></button>
+                       <div className="flex items-center justify-center px-2 relative">
+                         <input type="date" value={timelineStart} onChange={(e) => { setTimelineStart(e.target.value); setIsAllTimelineView(false); }} className="pl-2 pr-9 py-2 bg-transparent text-[11px] outline-none font-bold text-slate-700 w-[110px] cursor-pointer relative z-10 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0" />
+                         <Icons.CalendarInput className="absolute right-2 text-teal-600 w-4 h-4 pointer-events-none z-0" />
+                         <span className="text-slate-300 font-bold mx-1">-</span>
+                         <div className="relative flex items-center">
+                           <input type="date" value={timelineEnd} onChange={(e) => { setTimelineEnd(e.target.value); setIsAllTimelineView(false); }} className="pl-2 pr-9 py-2 bg-transparent text-[11px] outline-none font-bold text-slate-700 w-[110px] cursor-pointer relative z-10 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0" />
+                           <Icons.CalendarInput className="absolute right-2 text-teal-600 w-4 h-4 pointer-events-none z-0" />
+                         </div>
+                       </div>
+                       <button onClick={() => shiftTimeline(1)} className="p-3 hover:bg-slate-50 rounded-r-xl text-slate-500 border-l border-slate-200 transition-colors"><Icons.ChevronRight /></button>
+                    </div>
+                  </div>
+               </div>
+               <div className="w-full overflow-x-auto pb-6 bg-slate-50">
+                  <div className={`${containerMinW} flex flex-col border-l border-slate-300`}>
+                    {monthsHeader.length > 0 && <div className="flex w-full relative bg-slate-100/80 border-t border-slate-300">
+                        <div className="w-16 md:w-24 shrink-0 sticky left-0 z-30 bg-slate-100/80 border-r border-slate-300"></div>
+                        <div className="flex flex-1 border-r border-slate-300">
+                          {monthsHeader.map((m, i) => <div key={i} className="text-center py-1.5 border-r border-slate-300 last:border-r-0" style={{ width: `${m.widthPercent}%` }}><span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{m.label}</span></div>)}
+                        </div>
+                    </div>}
+                    <div className="flex w-full border-b-2 border-slate-300 relative pb-1.5 pt-1 bg-white">
+                      <div className="w-16 md:w-24 shrink-0 sticky left-0 z-30 bg-white border-r border-slate-300 shadow-sm"></div>
+                      <div className="flex flex-1 border-r border-slate-300">
+                        {gridColumns.map((col) => {
+                          const isToday = col.dateStr === todayStr;
+                          return <div key={col.id} className={`text-center relative flex flex-col justify-between border-r border-slate-200 last:border-r-0 ${isToday ? 'bg-slate-200 ring-2 ring-inset ring-slate-400' : ''}`} style={{ width: `${col.widthPercent}%` }}>
+                            <div className="text-[8px] font-bold text-slate-400 uppercase pt-1">{col.dayName}</div>
+                            <div className={`text-[11px] font-bold my-0.5 ${col.isWeekend ? 'text-rose-500' : 'text-slate-800'}`}>{col.label}</div>
+                          </div>
+                        })}
+                      </div>
+                    </div>
+                    <div className="w-full">
+                      {Array.from(new Set(reservations.map(r => r.cabinId))).sort((a,b) => a - b).map(cabinId => {
+                          const cabin = CABINS.find(c => c.id === cabinId);
+                          const cabinReservations = reservations.filter(r => r.cabinId === cabinId);
+                          return <div key={cabinId} className="flex w-full items-center h-10 md:h-12 group hover:bg-slate-100 transition-colors border-b border-slate-200">
+                              <div className="w-16 md:w-24 shrink-0 sticky left-0 z-20 bg-white group-hover:bg-slate-100 font-bold text-slate-800 text-xs flex items-center justify-between px-3 border-r border-slate-300 transition-colors"><span>Nr</span><span>{cabin?.number}</span></div>
+                              <div className="flex-1 h-full relative bg-slate-50/50 border-r border-slate-300">
+                                <div className="absolute inset-0 flex w-full">
+                                   {gridColumns.map((col) => <div key={col.id} className={`border-r border-slate-200/40 h-full z-0 ${col.dateStr === todayStr ? 'bg-slate-200/40' : ''}`} style={{ width: `${col.widthPercent}%` }}></div>)}
+                                </div>
+                                {cabinReservations.map(res => {
+                                  const styleParams = getReservationStyleParams(res);
+                                  if (!styleParams) return null; 
+                                  const styleClasses = getStatusClasses(res.status);
+                                  return <div key={res.id} className={`absolute top-1 bottom-1 rounded-lg shadow-sm flex items-center justify-start overflow-hidden cursor-pointer hover:brightness-95 border ${styleClasses} transition-all`} style={{ left: styleParams.left, width: styleParams.width, zIndex: 10 }} onClick={(e) => handleTimelineReservationClick(res, e)}>
+                                      <div className="px-1.5 flex items-center gap-1.5 whitespace-nowrap overflow-hidden">
+                                        {getStatusIcon(res.status)} <span className="text-[9px] font-bold truncate">{parseFloat(styleParams.width) > 6 ? `${res.firstName} ${res.lastName}` : ''}</span>
+                                      </div>
+                                    </div>;
+                                })}
+                              </div>
+                            </div>;
+                      })}
+                    </div>
+                  </div>
+               </div>
+            </div>
+
+            {/* 5. MODUŁ: SPRZĄTANIE */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-300 overflow-hidden flex flex-col mt-8">
+              <div className="bg-slate-50 border-b border-slate-300 p-4 md:px-6 flex flex-col lg:flex-row items-center justify-between gap-4">
+                 <div className="flex items-center gap-3 shrink-0">
+                   <div className="text-teal-700"><Icons.Broom className="w-6 h-6" /></div>
+                   <h2 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Sprzątanie</h2>
+                 </div>
+                 <div className="flex flex-wrap items-center justify-end gap-2 ml-auto">
+                   <span className="bg-purple-50 border border-purple-300 text-purple-700 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase shadow-sm">Do: {countDoSprzatania}</span>
+                   <span className="bg-amber-50 border border-amber-300 text-amber-800 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase shadow-sm">Do rozliczenia: {countZrobione} - {(countZrobione * 100).toLocaleString('pl-PL')} zł</span>
+                   <span className="bg-emerald-50 border border-emerald-300 text-emerald-800 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase shadow-sm">Rozliczono: {(countRozliczono * 100).toLocaleString('pl-PL')} zł</span>
+                 </div>
+              </div>
+              <div className="p-4 md:p-6">
+                <div className="flex flex-wrap gap-2 w-full mb-6">
+                   <button onClick={() => setCleaningFilter('All')} className={`px-4 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg border min-h-[40px] shadow-sm transition-all ${cleaningFilter === 'All' ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border-slate-300 hover:bg-slate-50'}`}>Wszystkie</button>
+                   {CLEANING_STATUSES.map(s => <button key={s} onClick={() => setCleaningFilter(s)} className={`px-4 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg border min-h-[40px] whitespace-nowrap shadow-sm transition-all ${cleaningFilter === s ? 'bg-purple-50 text-purple-700 border-purple-400' : 'bg-white text-slate-500 border-slate-300 hover:bg-slate-50'}`}>{getStatusIcon(s)} {s}</button>)}
+                </div>
+                <div className="w-full overflow-x-auto border border-slate-300 rounded-xl">
+                  <table className="w-full text-left border-collapse table-auto min-w-[700px]">
+                    <thead>
+                      <tr className="bg-slate-50 text-slate-500 text-[10px] uppercase font-bold border-b border-slate-300 select-none">
+                        <th className="sticky left-0 z-20 bg-slate-50 p-4 shadow-[1px_0_0_0_#cbd5e1]">Domek</th>
+                        <th className="p-4">Czas na sprzątnięcie (od - do)</th>
+                        <th className="p-4">Koszt jedn.</th>
+                        <th className="p-4 w-[220px]">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 text-xs">
+                      {cleaningJobs.map(res => {
+                        const timeRange = getCleaningTimeRange(res);
+                        return <tr key={res.id} className="bg-white hover:bg-slate-50">
+                            <td className="sticky left-0 z-10 bg-white p-4 font-bold text-purple-700 border-r border-slate-200 transition-colors">Nr {res.cabinNumber}</td>
+                            <td className="p-4 text-slate-600">
+                               <div className="flex flex-col gap-1">
+                                 <div className="flex items-center gap-2"><span className="text-[10px] font-bold uppercase text-slate-400 w-6">Od:</span> <span className="font-bold text-slate-800">{timeRange.from}</span></div>
+                                 <div className="flex items-center gap-2"><span className="text-[10px] font-bold uppercase text-slate-400 w-6">Do:</span> <span className="font-bold text-slate-800">{timeRange.to}</span></div>
+                               </div>
+                            </td>
+                            <td className="p-4 font-bold text-slate-800 whitespace-nowrap">100 zł</td>
+                            <td className="p-4"><select value={res.cleaningStatus} onChange={(e) => handleCleaningStatusChange(res.id, e.target.value)} className={`w-full px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase outline-none border cursor-pointer min-h-[44px] transition-all ${res.cleaningStatus === 'rozliczono' ? 'bg-emerald-50 border-emerald-400 text-emerald-800' : 'bg-purple-50 border-purple-400 text-purple-800'}`}>{CLEANING_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}</select></td>
+                          </tr>;
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </main>
+
+          {/* Modal / Dialog */}
+          <div className={`fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/80 backdrop-blur-md transition-opacity duration-300 ${isModalOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            <div className={`bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-[0_0_50px_rgba(0,0,0,0.3)] w-full sm:w-[94vw] sm:max-w-6xl mt-auto sm:my-auto transition-all duration-300 flex flex-col h-[92vh] sm:h-[88vh] relative z-[100] overflow-hidden border border-slate-300 ${isModalOpen ? 'translate-y-0 scale-100' : 'translate-y-full sm:scale-95'}`}>
+              <div className="px-6 sm:px-10 py-6 border-b border-slate-300 flex justify-between items-center bg-slate-50 shrink-0 z-[110] shadow-sm">
+                <h3 className="text-xl md:text-2xl font-bold text-slate-800 flex items-center gap-2">
+                  {editingId ? `Edycja rezerwacji domku numer ${selectedCabin?.number}` : `Nowa rezerwacja domku numer ${selectedCabin?.number}`}
+                  <span className="text-slate-500 font-medium ml-1"> - ({selectedCabin?.capacity} os.)</span>
+                </h3>
+                <button onClick={handleCloseModal} className="bg-white border border-slate-300 text-slate-500 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-300 rounded-full p-2.5 transition-all shadow-sm focus:outline-none focus:ring-4 focus:ring-slate-100"><Icons.Close /></button>
+              </div>
+              <div className="overflow-y-auto p-6 sm:p-10 shrink h-full relative pb-36">
+                <form id="reservationForm" onSubmit={handleSaveReservation} className="space-y-8 max-w-4xl mx-auto">
+                  {!editingId ? <div className="w-full px-6 py-5 rounded-2xl text-base font-bold border border-red-300 bg-red-50 text-red-700 flex items-center min-h-[64px] shadow-inner"><Icons.StatusNew /> Nowa - czekam na zadatek</div> : 
+                    <div className="relative z-[150]">
+                      <label className="block text-[11px] font-bold text-slate-400 uppercase mb-2 ml-1 tracking-widest">Status rezerwacji *</label>
+                      <button type="button" onClick={() => setStatusDropdownOpen(!statusDropdownOpen)} className={`w-full px-6 py-4 rounded-2xl text-base font-bold text-left border flex items-center justify-between shadow-sm cursor-pointer hover:brightness-95 transition-all min-h-[60px] ${getStatusClasses(formData.status)}`}>
+                        <div className="flex items-center">{getStatusIcon(formData.status)} {formData.status}</div>
+                        <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider opacity-70">Zmień <Icons.ChevronDown className="w-4 h-4" /></div>
+                      </button>
+                      {statusDropdownOpen && <div className="absolute top-[105%] left-0 w-full bg-white border border-slate-300 rounded-2xl shadow-2xl z-[160] overflow-hidden flex flex-col p-2 gap-1 animate-in slide-in-from-top-2 border-t-4 border-t-teal-500">
+                          {STATUS_OPTIONS.map(status => <button key={status} type="button" onClick={(e) => { e.preventDefault(); handleInputChange({ target: { name: 'status', value: status } }); setStatusDropdownOpen(false); }} className={`w-full px-6 py-4 rounded-xl text-sm font-bold text-left border flex items-center transition-all hover:bg-slate-50 ${formData.status === status ? getStatusClasses(status) : 'bg-transparent border-transparent text-slate-600'}`}>{getStatusIcon(status)} {status}</button>)}
+                        </div>}
+                    </div>}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div><label className="block text-[11px] font-bold text-slate-400 uppercase mb-2 ml-1 tracking-widest">Imię *</label><input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} required className={`w-full px-6 py-4 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-teal-500 outline-none transition-all text-base font-bold text-slate-800 shadow-sm ${getValidationClass(formData.firstName)}`} placeholder="np. Jan" /></div>
+                    <div><label className="block text-[11px] font-bold text-slate-400 uppercase mb-2 ml-1 tracking-widest">Nazwisko *</label><input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} required className={`w-full px-6 py-4 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-teal-500 outline-none transition-all text-base font-bold text-slate-800 shadow-sm ${getValidationClass(formData.lastName)}`} placeholder="np. Kowalski" /></div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div><label className="block text-[11px] font-bold text-slate-400 uppercase mb-2 ml-1 tracking-widest">Telefon *</label><input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} required className={`w-full px-6 py-4 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-teal-500 outline-none text-base font-bold shadow-sm ${getValidationClass(formData.phone)}`} placeholder="123 456 789" /></div>
+                    <div><label className="block text-[11px] font-bold text-slate-400 uppercase mb-2 ml-1 tracking-widest">Email</label><input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full px-6 py-4 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-teal-500 text-base font-bold shadow-sm" placeholder="jan@mail.com" /></div>
+                  </div>
+                  <div className="w-full"><label className="block text-[11px] font-bold text-slate-400 uppercase mb-2 ml-1 tracking-widest">Liczba gości (opcjonalnie)</label><div className="relative"><select name="guestCount" value={formData.guestCount} onChange={handleInputChange} className="w-full pl-6 pr-12 py-4 bg-white border border-slate-300 rounded-2xl font-bold appearance-none shadow-sm focus:border-teal-500 transition-all">{Array.from({ length: selectedCabin?.capacity || 4 }).map((_, i) => { const num = (selectedCabin?.capacity || 4) - i; return <option key={num} value={num}>{num} {num === 1 ? 'osoba' : 'osoby'}</option>;})}</select><Icons.ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 w-5 h-5" /></div></div>
+                  <div className="w-full space-y-8">
+                    <div><label className="block text-[11px] font-bold text-slate-400 uppercase mb-3 ml-1 tracking-widest">Zameldowanie do: (15:00 - 22:00) *</label>
+                      <div className="flex flex-col sm:flex-row gap-4"><div className={`relative flex-1 bg-white border border-slate-300 rounded-2xl shadow-sm transition-all focus-within:border-teal-500 ${getValidationClass(formData.startDate)}`}><input type="date" name="startDate" value={formData.startDate} onChange={handleInputChange} required className="w-full pl-6 pr-12 py-4 bg-transparent outline-none text-base font-bold cursor-pointer min-h-[56px] relative z-10 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0" /><Icons.CalendarInput className="absolute right-5 top-1/2 -translate-y-1/2 text-teal-600 w-6 h-6 z-0 pointer-events-none" /></div><input type="time" name="startTime" value={formData.startTime} onChange={handleInputChange} className="w-full sm:w-[160px] px-4 py-4 border border-slate-300 rounded-2xl font-bold text-center shadow-sm text-base focus:border-teal-500 outline-none transition-all bg-slate-50" /></div>
+                    </div>
+                    <div><label className="block text-[11px] font-bold text-slate-400 uppercase mb-3 ml-1 tracking-widest">Doba hotelowa do: (15:00 - 10:00) *</label>
+                      <div className="flex flex-col sm:flex-row gap-4"><div className={`relative flex-1 bg-white border border-slate-300 rounded-2xl shadow-sm transition-all focus-within:border-teal-500 ${getValidationClass(formData.endDate)}`}><input type="date" name="endDate" value={formData.endDate} onChange={handleInputChange} required className="w-full pl-6 pr-12 py-4 bg-transparent outline-none text-base font-bold cursor-pointer min-h-[56px] relative z-10 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0" /><Icons.CalendarInput className="absolute right-5 top-1/2 -translate-y-1/2 text-teal-600 w-6 h-6 pointer-events-none" /></div><input type="time" name="endTime" value={formData.endTime} onChange={handleInputChange} className="w-full sm:w-[160px] px-4 py-4 border border-slate-300 rounded-2xl font-bold text-center shadow-sm text-base focus:border-teal-500 outline-none transition-all bg-slate-50" /></div>
+                    </div>
+                  </div>
+                  <div className="pt-4"><label className="block text-[11px] font-bold text-slate-400 uppercase mb-5 ml-1 tracking-widest">Opcje dodatkowe</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                      {[ {name: 'crib', label: 'Łóżeczko', price: '+100 zł', icon: <Icons.Crib />}, {name: 'bath', label: 'Wanienka', price: '+0 zł', icon: <Icons.BabyBath />}, {name: 'chair', label: 'Krzesełko', price: '+0 zł', icon: <Icons.HighChair />} ].map(item => (
+                        <label key={item.name} className={`flex items-center gap-5 p-6 rounded-2xl border cursor-pointer transition-all shadow-sm group ${formData.addons[item.name] ? 'bg-teal-50 border-teal-500 text-teal-800 ring-2 ring-teal-500/10' : 'bg-white border-slate-300 text-slate-500 hover:bg-slate-50 hover:border-slate-400'}`}>
+                          <input type="checkbox" name={item.name} checked={formData.addons[item.name]} onChange={handleInputChange} className="hidden" />{item.icon}<div className="flex flex-col"><span className="text-base font-bold">{item.label}</span><span className="text-[11px] font-bold uppercase opacity-60 tracking-wider">{item.price}</span></div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  {formData.startDate && formData.endDate && !isNaN(new Date(formData.startDate).getTime()) && !isNaN(new Date(formData.endDate).getTime()) && new Date(formData.startDate) < new Date(formData.endDate) && (
+                    <div className="bg-teal-50/80 p-8 rounded-[2rem] border-2 border-teal-200 mt-10 flex flex-col gap-4 shadow-inner relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-teal-200/20 rounded-full -mr-16 -mt-16 pointer-events-none"></div>
+                      <div className="flex justify-between items-center text-slate-600 font-bold text-base">Szacunkowy koszt pobytu: <span className="text-2xl text-slate-900 font-black">{calculatePrice(formData.startDate, formData.endDate, selectedCabin?.capacity || 4, formData.addons).toLocaleString('pl-PL')} zł</span></div>
+                      <div className="w-full h-px bg-teal-200/50"></div>
+                      <div className="flex justify-between items-center text-slate-600 font-bold text-base">Wymagany zadatek (30%): <span className="text-2xl text-amber-600 font-black">{Math.round(calculatePrice(formData.startDate, formData.endDate, selectedCabin?.capacity || 4, formData.addons) * 0.3).toLocaleString('pl-PL')} zł</span></div>
+                    </div>
+                  )}
+                </form>
+              </div>
+              <div className="px-6 py-8 border-t border-slate-300 flex flex-wrap-reverse sm:flex-nowrap gap-5 justify-end items-center bg-white shrink-0 absolute bottom-0 left-0 w-full shadow-[0_-10px_30px_rgba(0,0,0,0.05)] z-[110]">
+                {editingId && <button type="button" onClick={() => deleteReservation(editingId)} className="w-full sm:w-auto px-10 py-4 text-rose-600 bg-white border-2 border-rose-200 rounded-2xl text-sm font-bold shadow-sm hover:bg-rose-50 hover:border-rose-400 transition-all">Usuń rezerwację</button>}
+                <button type="button" onClick={handleCloseModal} className="flex-1 sm:flex-none px-12 py-4 text-slate-600 bg-white border border-slate-300 rounded-2xl text-sm font-bold shadow-sm hover:bg-slate-100 transition-all">Anuluj</button>
+                <button form="reservationForm" type="submit" className="flex-1 sm:flex-none px-20 py-4 bg-teal-700 hover:bg-teal-800 text-white rounded-2xl text-base font-bold shadow-xl hover:shadow-teal-500/20 hover:-translate-y-0.5 transition-all">Zapisz rezerwację</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
