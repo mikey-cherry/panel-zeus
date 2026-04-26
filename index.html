@@ -8,16 +8,17 @@
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Konfiguracja Tailwind z morską paletą barw -->
+  <!-- Konfiguracja Tailwind z morską paletą barw (Summer Dream) -->
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            amalfi: '#2E5AA7',
-            zest: '#FFA62B',
-            breeze: '#86C5FF',
-            gelato: '#F8E6A0',
+            cerulean: '#0081A7', /* Głęboki morski niebieski */
+            teal: '#00AFB9',     /* Tropikalny błękit */
+            lightYellow: '#FDFCDC', /* Jasny żółty */
+            apricot: '#FED9B7',  /* Delikatna brzoskwinia */
+            coral: '#F07167',    /* Wibrujący koralowy */
           },
           borderRadius: {
             '3xl': '1.5rem',
@@ -32,28 +33,28 @@
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 
-  <!-- Babel (do uruchomienia JSX) -->
+  <!-- Babel -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
-    /* CSS dla ukrycia paska przewijania, ale zachowania widoczności scrolla na mobile */
+    /* Ukrycie natywnego paska przewijania */
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* Płynne przewijanie do 120Hz */
+    /* Płynne przewijanie ekranu */
     * {
       scroll-behavior: smooth;
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* CSS Noise Pattern: Piaszczysta Plaża */
+    /* Tło Piaszczysta Plaża (Noise Pattern) */
     body {
       background-color: #f4ede4; 
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
       background-attachment: fixed;
     }
 
-    /* Bezpieczne i w 100% klikalne pola dat dla mobile i desktop */
+    /* Niewidzialne rozszerzenie klikalnego obszaru kalendarza HTML */
     input[type="date"]::-webkit-calendar-picker-indicator,
     input[type="time"]::-webkit-calendar-picker-indicator {
       position: absolute;
@@ -63,15 +64,16 @@
       height: 100%;
       opacity: 0;
       cursor: pointer;
+      z-index: 10;
     }
   </style>
 </head>
-<body class="antialiased selection:bg-breeze selection:text-amalfi pb-[env(safe-area-inset-bottom)]">
+<body class="antialiased selection:bg-teal selection:text-white pb-[env(safe-area-inset-bottom)]">
   
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useMemo, useEffect } = React;
+    const { useState, useMemo, useEffect, useRef } = React;
 
     const CABINS = [
       { id: 24, number: '24', capacity: 4, left: '36%', top: '11%' },
@@ -114,34 +116,35 @@
     ];
 
     // --- ICONS (SVG) ---
+    // GWARANCJA NIEZMIENNOŚCI WYMIARÓW: Każda ikona ma na stałe "w-5 h-5 shrink-0" (lub 6)
     const Icons = {
-      SortDefault: () => <svg className="w-3 h-3 ml-1 text-slate-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>,
-      SortAsc: () => <svg className="w-3 h-3 ml-1 text-amalfi inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 15l7-7 7 7"/></svg>,
-      SortDesc: () => <svg className="w-3 h-3 ml-1 text-amalfi inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"/></svg>,
-      ChevronLeft: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/></svg>,
-      ChevronRight: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/></svg>,
-      ChevronDown: ({ className }) => <svg className={className || "w-4 h-4"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"/></svg>,
-      ChevronUp: ({ className }) => <svg className={className || "w-4 h-4"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7"/></svg>,
-      Close: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>,
-      CalendarLine: ({ className }) => <svg className={className || "w-5 h-5 inline-block mr-2"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>,
-      Expand: ({ className }) => <svg className={className || "w-4 h-4 inline-block mr-1.5"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>,
-      Search: ({ className }) => <svg className={className || "w-5 h-5 inline-block mr-2"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>,
-      MapIcon: ({ className }) => <svg className={className || "w-5 h-5 inline-block mr-2"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>,
-      CalendarInput: ({ className }) => <svg className={className || "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>,
-      Crib: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 6h16M4 10h16M4 14h16M4 6v12a2 2 0 002 2h12a2 2 0 002-2V6M8 18v3m8-3v3" /></svg>,
-      BabyBath: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 12v4a4 4 0 01-4 4H8a4 4 0 01-4-4v-4m16 0H4m8-6v6m-4-2h8" /></svg>,
-      HighChair: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 10h10M8 10V6a2 2 0 012-2h4a2 2 0 012 2v4m-9 0L5 22m10-12l2 12m-9-6h6" /></svg>,
-      Clock: () => <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
-      Broom: ({ className }) => <svg className={className || "w-5 h-5 inline mr-2"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21l3-14m0 0l3 14m-3-14c1.5 0 3-1 3-2 0-2-3-3-3-3s-3 1-3 3c0 1 1.5 2 3 2zm-4 4h8" /></svg>,
+      SortDefault: ({ className }) => <svg className={`w-3 h-3 ml-1 shrink-0 ${className || 'text-slate-400 inline'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>,
+      SortAsc: ({ className }) => <svg className={`w-3 h-3 ml-1 shrink-0 ${className || 'text-cerulean inline'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 15l7-7 7 7"/></svg>,
+      SortDesc: ({ className }) => <svg className={`w-3 h-3 ml-1 shrink-0 ${className || 'text-cerulean inline'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"/></svg>,
+      ChevronLeft: ({ className }) => <svg className={`w-5 h-5 shrink-0 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"/></svg>,
+      ChevronRight: ({ className }) => <svg className={`w-5 h-5 shrink-0 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7"/></svg>,
+      ChevronDown: ({ className }) => <svg className={`w-4 h-4 shrink-0 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"/></svg>,
+      ChevronUp: ({ className }) => <svg className={`w-4 h-4 shrink-0 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7"/></svg>,
+      Close: ({ className }) => <svg className={`w-5 h-5 shrink-0 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>,
+      CalendarLine: ({ className }) => <svg className={`w-6 h-6 shrink-0 inline-block mr-2 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>,
+      Expand: ({ className }) => <svg className={`w-4 h-4 shrink-0 inline-block mr-1.5 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>,
+      Search: ({ className }) => <svg className={`w-6 h-6 shrink-0 inline-block mr-2 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>,
+      MapIcon: ({ className }) => <svg className={`w-6 h-6 shrink-0 inline-block mr-2 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>,
+      CalendarInput: ({ className }) => <svg className={`w-5 h-5 shrink-0 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>,
+      Crib: () => <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 6h16M4 10h16M4 14h16M4 6v12a2 2 0 002 2h12a2 2 0 002-2V6M8 18v3m8-3v3" /></svg>,
+      BabyBath: () => <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 12v4a4 4 0 01-4 4H8a4 4 0 01-4-4v-4m16 0H4m8-6v6m-4-2h8" /></svg>,
+      HighChair: () => <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 10h10M8 10V6a2 2 0 012-2h4a2 2 0 012 2v4m-9 0L5 22m10-12l2 12m-9-6h6" /></svg>,
+      Clock: () => <svg className="w-4 h-4 inline mr-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+      Broom: ({ className }) => <svg className={`w-6 h-6 inline mr-2 shrink-0 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21l3-14m0 0l3 14m-3-14c1.5 0 3-1 3-2 0-2-3-3-3s-3 1-3 3c0 1 1.5 2 3 2zm-4 4h8" /></svg>,
       StatusNew: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
       StatusConfirmed: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" /></svg>,
       StatusInProgress: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
       StatusDone: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7M5 18l4 4L19 12" /></svg>,
       StatusCanceled: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
-      ListIcon: () => <svg className="w-4 h-4 inline mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>,
-      WrenchIcon: () => <svg className="w-4 h-4 inline mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" /></svg>,
-      CheckDouble: () => <svg className="w-4 h-4 inline mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7M5 18l4 4L19 12" /></svg>,
-      UsersIcon: ({ className }) => <svg className={className || "w-5 h-5 inline mr-2"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+      ListIcon: ({ className }) => <svg className={`w-4 h-4 inline mr-1.5 shrink-0 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>,
+      WrenchIcon: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" /></svg>,
+      CheckDouble: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7M5 18l4 4L19 12" /></svg>,
+      UsersIcon: ({ className }) => <svg className={`w-6 h-6 inline mr-2 shrink-0 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
     };
 
     // --- KOMPONENTY UI ---
@@ -381,7 +384,7 @@
       if (statusStr.includes('Nowa')) return 'text-red-700 bg-red-50 border-red-300 hover:bg-red-100';
       if (statusStr.includes('Potwierdzona')) return 'text-zest bg-zest/10 border-zest/30 hover:bg-zest/20';
       if (statusStr.includes('W trakcie')) return 'text-emerald-700 bg-emerald-50 border-emerald-300 hover:bg-emerald-100';
-      if (statusStr.includes('Zrealizowana')) return 'text-amalfi bg-amalfi/10 border-amalfi/30 hover:bg-amalfi/20';
+      if (statusStr.includes('Zrealizowana')) return 'text-cerulean bg-cerulean/10 border-cerulean/30 hover:bg-cerulean/20';
       if (statusStr.includes('sprzątnięcia')) return 'text-purple-700 bg-purple-50 border-purple-300 hover:bg-purple-100';
       if (statusStr.includes('Anulowana')) return 'text-slate-600 bg-slate-100 border-slate-300 hover:bg-slate-200';
       return 'text-slate-600 bg-slate-50 border-slate-200 hover:bg-slate-100';
@@ -409,18 +412,35 @@
       const [selectedCabin, setSelectedCabin] = useState(null);
       const [editingId, setEditingId] = useState(null);
       const [sortConfig, setSortConfig] = useState({ key: 'startDate', direction: 'asc' });
-      const [filterStatus, setFilterStatus] = useState('All');
+      const [filterStatus, setFilterStatus] = useState('Nowa - czekam na zadatek'); // Zgodnie z prośbą domyślna to nowa
       const [cleaningFilter, setCleaningFilter] = useState('All');
       const [mapCapacityFilter, setMapCapacityFilter] = useState(null); 
       const [mapReferenceDate, setMapReferenceDate] = useState(getTodayString());
 
-      // Collapsible states
-      const [isAsystentOpen, setIsAsystentOpen] = useState(true);
-      const [isRuchOpen, setIsRuchOpen] = useState(false);
-      const [isRezerwacjeOpen, setIsRezerwacjeOpen] = useState(false);
-      const [isMapaOpen, setIsMapaOpen] = useState(false);
-      const [isOsCzasuOpen, setIsOsCzasuOpen] = useState(false);
-      const [isSprzatanieOpen, setIsSprzatanieOpen] = useState(false);
+      // Collapsible states (Accordion)
+      const [activeModule, setActiveModule] = useState('asystent');
+
+      // Refs do przewijania ekranu
+      const asystentRef = useRef(null);
+      const ruchRef = useRef(null);
+      const rezerwacjeRef = useRef(null);
+      const mapaRef = useRef(null);
+      const osCzasuRef = useRef(null);
+      const sprzatanieRef = useRef(null);
+
+      const handleModuleToggle = (id, ref) => {
+        if (activeModule === id) {
+            setActiveModule(null);
+        } else {
+            setActiveModule(id);
+            setTimeout(() => {
+                if (ref.current) {
+                    const y = ref.current.getBoundingClientRect().top + window.scrollY - 48; // 3rem (48px) od góry
+                    window.scrollTo({ top: y, behavior: 'smooth' });
+                }
+            }, 150);
+        }
+      };
 
       const initialRange = useMemo(() => getInitialTimelineRange(reservations), [reservations]);
       const [timelineStart, setTimelineStart] = useState(initialRange[0]);
@@ -592,12 +612,12 @@
         const count5 = assistantResults.filter(c => c.capacity === 5).length;
         const count7 = assistantResults.filter(c => c.capacity === 7).length;
         return (
-          <div className="mb-4 text-slate-700 text-xs md:text-sm font-medium bg-white p-4 md:p-5 rounded-2xl border border-slate-300 shadow-sm leading-relaxed w-full">
+          <div className="mb-6 text-slate-700 text-xs md:text-sm font-medium bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm leading-relaxed w-full">
             <div className="font-bold text-base text-slate-800">Znaleziono {assistantResults.length} wolnych domków dla {req} osób:</div>
-            <ul className="space-y-1 ml-2 mt-2 text-sm">
-               {count4 > 0 && req <= 4 && <li><strong className="text-emerald-600">{count4} szt.</strong> (zielone) 4-osobowe {req === 4 ? <span className="text-slate-400 font-semibold">(idealne)</span> : ''}</li>}
-               {count5 > 0 && req <= 5 && <li><strong className="text-zest">{count5} szt.</strong> (pomarańczowe) 5-osobowe {req === 5 ? <span className="text-slate-400 font-semibold">(idealne)</span> : ''}</li>}
-               {count7 > 0 && req <= 7 && <li><strong className={req === 4 ? 'text-amalfi' : 'text-zest'}>{count7} szt.</strong> ({req === 4 ? 'niebieskie' : 'pomarańczowe'}) 7-osobowe {req === 7 ? <span className="text-slate-400 font-semibold">(idealne)</span> : ''}</li>}
+            <ul className="space-y-1.5 ml-2 mt-3 text-sm">
+               {count4 > 0 && req <= 4 && <li><strong className="text-emerald-600">{count4} szt.</strong> (zielone) 4-osobowe {req === 4 ? <span className="text-slate-400 font-semibold text-[11px]">(idealne)</span> : ''}</li>}
+               {count5 > 0 && req <= 5 && <li><strong className="text-zest">{count5} szt.</strong> (pomarańczowe) 5-osobowe {req === 5 ? <span className="text-slate-400 font-semibold text-[11px]">(idealne)</span> : ''}</li>}
+               {count7 > 0 && req <= 7 && <li><strong className={req === 4 ? 'text-amalfi' : 'text-zest'}>{count7} szt.</strong> ({req === 4 ? 'niebieskie' : 'pomarańczowe'}) 7-osobowe {req === 7 ? <span className="text-slate-400 font-semibold text-[11px]">(idealne)</span> : ''}</li>}
             </ul>
           </div>
         );
@@ -702,8 +722,7 @@
       const cleaningJobs = cleaningFilter === 'All' ? cleaningJobsRaw : cleaningJobsRaw.filter(r => r.cleaningStatus === cleaningFilter);
 
       const countDoSprzatania = cleaningJobsRaw.filter(r => r.cleaningStatus === 'do sprzątnięcia').length;
-      const countZrobione = cleaningJobsRaw.filter(r => r.cleaningStatus === 'zrobione & do rozliczenia').length;
-      const countRozliczono = cleaningJobsRaw.filter(r => r.cleaningStatus === 'rozliczono').length;
+      const countZrobioneAmount = cleaningJobsRaw.filter(r => r.cleaningStatus === 'zrobione & do rozliczenia').length * 100;
 
       const { type: gridType, columns: gridColumns, monthsHeader } = getGridSpecs(timelineStart, timelineEnd);
       const containerMinW = isAllTimelineView ? 'min-w-full' : (gridType === 'days' ? 'min-w-[900px] md:min-w-[1000px]' : 'min-w-full');
@@ -716,33 +735,63 @@
         return { fromTime, fromRes, toTime, toRes: nextRes };
       };
 
+      // Kalkulacja rozbicia ceny
+      const renderPriceBreakdown = () => {
+        if (!formData.startDate || !formData.endDate || isNaN(new Date(formData.startDate).getTime()) || isNaN(new Date(formData.endDate).getTime()) || new Date(formData.startDate) >= new Date(formData.endDate)) return null;
+        
+        const start = new Date(formData.startDate);
+        const end = new Date(formData.endDate);
+        const nights = Math.round((end - start) / 86400000);
+        
+        const baseTotal = calculatePrice(formData.startDate, formData.endDate, selectedCabin?.capacity || 4, {});
+        const totalPrice = calculatePrice(formData.startDate, formData.endDate, selectedCabin?.capacity || 4, formData.addons);
+        const avgRate = nights > 0 ? Math.round(baseTotal / nights) : 0;
+        const deposit = Math.round(totalPrice * 0.3);
+
+        return (
+          <div className="bg-gelato/20 p-5 rounded-2xl border border-gelato mt-8 flex flex-col gap-3 shadow-sm">
+            <div className="flex justify-between items-center text-slate-700 font-medium text-sm">
+              <div className="flex items-center">
+                 Koszt pobytu: 
+                 <span className="font-normal text-slate-500 text-xs ml-2">({nights} nocy x {avgRate} zł)</span>
+              </div>
+              <span className="text-xl text-slate-900 font-black">{totalPrice.toLocaleString('pl-PL')} zł</span>
+            </div>
+            <div className="w-full h-px bg-gelato/60"></div>
+            <div className="flex justify-between items-center text-slate-700 font-medium text-sm">
+              Zadatek (30%): <span className="text-lg text-zest font-black">{deposit.toLocaleString('pl-PL')} zł</span>
+            </div>
+          </div>
+        )
+      };
+
       return (
-        <div className="min-h-screen px-3 pt-[max(env(safe-area-inset-top),16px)] md:p-6 lg:p-8 font-sans text-slate-800 text-sm overflow-x-hidden">
+        <div className="min-h-screen px-3 pt-[max(env(safe-area-inset-top),16px)] md:p-6 lg:p-8 font-sans text-slate-800 text-sm overflow-x-hidden relative z-10">
           
-          <main className="max-w-7xl mx-auto space-y-6 md:space-y-8">
+          <main className="max-w-7xl mx-auto space-y-5 md:space-y-6">
             
             {/* Header główny */}
-            <header className="flex items-center justify-between gap-4 mb-2 md:mb-6 px-1 relative z-10">
+            <header className="flex items-center justify-between gap-4 mb-2 px-1 relative z-10">
               <h1 className="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight drop-shadow-sm">Greckie Domki <span className="text-amalfi">Zeus</span></h1>
             </header>
 
             {/* 1. Asystent Rezerwacji */}
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10">
-              <div className={`p-4 md:px-5 flex items-center gap-3 cursor-pointer transition-colors ${isAsystentOpen ? 'bg-amalfi text-white border-b border-amalfi' : 'bg-sea1 text-sky-900 border-b border-transparent'}`} onClick={() => setIsAsystentOpen(!isAsystentOpen)}>
-                <Icons.Search className={`w-6 h-6 shrink-0 ${isAsystentOpen ? 'text-white' : 'text-sky-700'}`} />
-                <h2 className="text-base md:text-lg font-bold uppercase tracking-tight">Asystent Rezerwacji</h2>
-                <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${isAsystentOpen ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white/60 hover:bg-white/80 text-sky-900'}`}>
-                  {isAsystentOpen ? 'ZWIŃ' : 'ROZWIŃ'} {isAsystentOpen ? <Icons.ChevronUp className="w-4 h-4" /> : <Icons.ChevronDown className="w-4 h-4" />}
+            <div ref={asystentRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 transition-all scroll-mt-6">
+              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'asystent' ? 'bg-cerulean text-white border-b border-cerulean' : 'bg-sea1 text-cerulean border-b border-transparent'}`} onClick={() => handleModuleToggle('asystent', asystentRef)}>
+                <Icons.Search className={activeModule === 'asystent' ? 'text-white' : 'text-cerulean'} />
+                <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Asystent Rezerwacji</h2>
+                <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'asystent' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white/60 hover:bg-white/80 text-cerulean'}`}>
+                  {activeModule === 'asystent' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'asystent' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                 </button>
               </div>
-              {isAsystentOpen && (
+              {activeModule === 'asystent' && (
               <div className="p-4 md:p-6 animate-in slide-in-from-top-2 fade-in duration-200 bg-slate-100">
-                <div className="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-slate-200 mb-6">
+                <div className="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-slate-200 mb-6">
                   <form onSubmit={handleAssistantSearch} className="flex flex-col sm:flex-row flex-wrap gap-4 items-end">
                     <div className="w-full sm:w-auto min-w-[120px]">
                       <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1 tracking-widest">Ilość osób</label>
                       <div className="relative">
-                        <select name="capacity" value={assistantData.capacity} onChange={handleAssistantInputChange} className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:border-amalfi outline-none text-sm font-bold min-h-[48px] appearance-none transition-all">
+                        <select name="capacity" value={assistantData.capacity} onChange={handleAssistantInputChange} className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:border-amalfi outline-none text-sm font-bold min-h-[56px] appearance-none transition-all">
                           <option value="4">4 osoby</option><option value="5">5 osób</option><option value="7">7 osób</option>
                         </select>
                         <Icons.ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 w-4 h-4" />
@@ -750,28 +799,28 @@
                     </div>
                     <div className="w-full sm:flex-1 min-w-[180px]">
                       <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1 tracking-widest">Zameldowanie</label>
-                      <div className="relative flex items-center w-full bg-slate-50 border border-slate-200 rounded-xl focus-within:border-amalfi shadow-sm transition-colors">
-                        <input type="date" name="startDate" value={assistantData.startDate} onChange={handleAssistantInputChange} required className="w-full pl-4 pr-11 py-4 bg-transparent outline-none text-sm font-bold cursor-pointer min-h-[48px] block relative z-10" />
-                        <Icons.CalendarInput className="absolute right-4 text-amalfi w-5 h-5 pointer-events-none z-0" />
+                      <div className="relative flex items-center w-full bg-slate-50 border border-slate-200 rounded-2xl focus-within:border-amalfi shadow-sm transition-colors">
+                        <input type="date" name="startDate" value={assistantData.startDate} onChange={handleAssistantInputChange} required className="w-full pl-5 pr-12 py-4 bg-transparent outline-none text-sm font-bold cursor-pointer min-h-[56px] block relative z-10" />
+                        <Icons.CalendarInput className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-0" />
                       </div>
                     </div>
                     <div className="w-full sm:flex-1 min-w-[180px]">
                       <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1 tracking-widest">Doba hotelowa</label>
-                      <div className="relative flex items-center w-full bg-slate-50 border border-slate-200 rounded-xl focus-within:border-amalfi shadow-sm transition-colors">
-                        <input type="date" name="endDate" value={assistantData.endDate} onChange={handleAssistantInputChange} required className="w-full pl-4 pr-11 py-4 bg-transparent outline-none text-sm font-bold cursor-pointer min-h-[48px] block relative z-10" />
-                        <Icons.CalendarInput className="absolute right-4 text-amalfi w-5 h-5 pointer-events-none z-0" />
+                      <div className="relative flex items-center w-full bg-slate-50 border border-slate-200 rounded-2xl focus-within:border-amalfi shadow-sm transition-colors">
+                        <input type="date" name="endDate" value={assistantData.endDate} onChange={handleAssistantInputChange} required className="w-full pl-5 pr-12 py-4 bg-transparent outline-none text-sm font-bold cursor-pointer min-h-[56px] block relative z-10" />
+                        <Icons.CalendarInput className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-0" />
                       </div>
                     </div>
-                    <button type="submit" className="w-full sm:w-auto px-10 py-4 bg-amalfi hover:bg-amalfi/90 text-white rounded-xl text-sm font-bold shadow-md min-h-[48px] transition-all">Szukaj</button>
+                    <button type="submit" className="w-full sm:w-auto px-10 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl text-sm font-bold shadow-md min-h-[56px] transition-all">Szukaj</button>
                   </form>
                 </div>
 
                 {assistantResults !== null && (
                   <div className="animate-in fade-in duration-300">
-                    {assistantResults.length === 0 ? <div className="bg-rose-50 border border-rose-200 rounded-2xl p-5 text-center text-rose-800 font-bold shadow-sm">Brak wolnych domków w tym terminie.</div> : 
+                    {assistantResults.length === 0 ? <div className="bg-rose-50 border border-rose-200 rounded-3xl p-6 text-center text-rose-800 font-bold shadow-sm">Brak wolnych domków w tym terminie.</div> : 
                       <> 
                         {renderAssistantMessage()}
-                        <div className="w-full overflow-x-auto overflow-y-hidden h-[60svh] md:h-auto bg-slate-50 rounded-2xl border border-slate-300 relative shadow-sm">
+                        <div className="w-full overflow-x-auto overflow-y-hidden h-[60svh] md:h-auto bg-white rounded-3xl border border-slate-200 relative shadow-sm">
                           <div className="relative h-full aspect-[1.6/1] w-[calc(60svh*1.6)] md:w-full md:h-auto min-w-[900px]">
                             <div className="absolute inset-0 bg-cover bg-center opacity-40 grayscale" style={{ backgroundImage: `url('https://greckiedomkizeus.pl/assets/images/APP%20ZEUS%20map.jpg')` }} />
                             {CABINS.map(cabin => {
@@ -791,55 +840,55 @@
             </div>
 
             {/* 2. RUCH DZISIAJ */}
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 mt-6">
-              <div className={`p-4 md:px-5 flex items-center gap-3 cursor-pointer transition-colors ${isRuchOpen ? 'bg-zest text-white border-b border-zest' : 'bg-orange-100 text-orange-900 border-b border-transparent'}`} onClick={() => setIsRuchOpen(!isRuchOpen)}>
-                <Icons.UsersIcon className={`w-6 h-6 shrink-0 ${isRuchOpen ? 'text-white' : 'text-orange-700'}`} />
-                <h2 className="text-base md:text-lg font-bold uppercase tracking-tight">Ruch Dzisiaj</h2>
-                <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${isRuchOpen ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white/60 hover:bg-white/80 text-orange-900'}`}>
-                  {isRuchOpen ? 'ZWIŃ' : 'ROZWIŃ'} {isRuchOpen ? <Icons.ChevronUp className="w-4 h-4" /> : <Icons.ChevronDown className="w-4 h-4" />}
+            <div ref={ruchRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 transition-all scroll-mt-6">
+              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'ruch' ? 'bg-zest text-white border-b border-zest' : 'bg-orange-50 text-orange-800 border-b border-transparent'}`} onClick={() => handleModuleToggle('ruch', ruchRef)}>
+                <Icons.UsersIcon className={`w-6 h-6 shrink-0 ${activeModule === 'ruch' ? 'text-white' : 'text-orange-700'}`} />
+                <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Ruch Dzisiaj</h2>
+                <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'ruch' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white/60 hover:bg-white/80 text-orange-900'}`}>
+                  {activeModule === 'ruch' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'ruch' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                 </button>
               </div>
               
-              {isRuchOpen && (
-              <div className="p-4 md:p-6 bg-slate-100 animate-in slide-in-from-top-2 fade-in duration-200">
-                <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 flex justify-between items-center shadow-sm">
-                    <span className="text-xs md:text-sm font-bold text-slate-500 uppercase tracking-widest">Goście na miejscu</span>
-                    <div className="flex items-center gap-2 text-amalfi">
-                        <Icons.UsersIcon className="w-5 h-5 md:w-6 md:h-6" />
-                        <span className="text-xl md:text-2xl font-black leading-none">{peopleOnSite}</span>
+              {activeModule === 'ruch' && (
+              <div className="bg-slate-100 animate-in slide-in-from-top-2 fade-in duration-200">
+                <div className="bg-white border-b border-slate-200 py-3 px-6 flex justify-center items-center gap-3 shadow-sm">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Gości w ośrodku:</span>
+                    <div className="flex items-center gap-1.5 text-zest">
+                        <Icons.UsersIcon className="w-5 h-5 text-zest" />
+                        <span className="text-xl font-black leading-none">{peopleOnSite}</span>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                   <div className="grid grid-cols-2 border-b border-slate-200 bg-slate-50">
-                       <div className="p-3 text-center text-[10px] font-bold text-slate-500 uppercase tracking-widest border-r border-slate-200">Przyjazdy</div>
-                       <div className="p-3 text-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">Wyjazdy</div>
+                <div className="p-4 md:p-6 w-full">
+                   <div className="grid grid-cols-2 gap-2 md:gap-4 mb-2 px-2">
+                       <div className="text-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">Przyjazdy</div>
+                       <div className="text-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">Wyjazdy</div>
                    </div>
-                   <div className="divide-y divide-slate-100">
+                   <div className="flex flex-col gap-3">
                        {ruchDzisiajList.map(item => (
-                           <div key={item.cabinNumber} className="grid grid-cols-2 bg-white">
-                               <div className="p-3 md:p-4 border-r border-slate-100 flex flex-col justify-center items-center text-center">
+                           <div key={item.cabinNumber} className="grid grid-cols-2 gap-2 md:gap-4 bg-white rounded-3xl border border-slate-200 p-2 md:p-3 shadow-sm">
+                               <div className="flex flex-col justify-center border-r border-slate-100 pr-2 md:pr-4">
                                    {item.arrival ? (
-                                       <button onClick={() => handleEditClick(item.arrival)} className="flex flex-col items-center justify-center p-2.5 hover:bg-emerald-50 rounded-xl w-full border border-transparent hover:border-emerald-200 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+                                       <button onClick={() => handleEditClick(item.arrival)} className="flex flex-col items-center justify-center p-3 hover:bg-emerald-50 rounded-2xl w-full border border-emerald-100 hover:border-emerald-200 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
                                            <span className="font-black text-emerald-600 text-sm md:text-base mb-1">{item.arrival.startTime}</span>
                                            <span className="font-bold text-slate-800 text-sm md:text-base">Domek {item.cabinNumber}</span>
-                                           <span className="text-[10px] md:text-xs text-slate-500 truncate w-full max-w-[120px] mt-0.5">{item.arrival.firstName} {item.arrival.lastName}</span>
+                                           <span className="text-[10px] md:text-xs text-slate-500 truncate w-full max-w-[140px] text-center mt-1">{item.arrival.firstName} {item.arrival.lastName}</span>
                                        </button>
-                                   ) : <span className="text-slate-300 text-xs font-medium my-auto py-4">Brak</span>}
+                                   ) : <span className="text-center text-slate-300 text-xs font-medium py-4">Brak</span>}
                                </div>
-                               <div className="p-3 md:p-4 flex flex-col justify-center items-center text-center">
+                               <div className="flex flex-col justify-center pl-2 md:pl-0">
                                    {item.departure ? (
-                                       <button onClick={() => handleEditClick(item.departure)} className="flex flex-col items-center justify-center p-2.5 hover:bg-orange-50 rounded-xl w-full border border-transparent hover:border-orange-200 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500/20">
+                                       <button onClick={() => handleEditClick(item.departure)} className="flex flex-col items-center justify-center p-3 hover:bg-orange-50 rounded-2xl w-full border border-orange-100 hover:border-orange-200 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500/20">
                                            <span className="font-black text-zest text-sm md:text-base mb-1">{item.departure.endTime}</span>
                                            <span className="font-bold text-slate-800 text-sm md:text-base">Domek {item.cabinNumber}</span>
-                                           <span className="text-[10px] md:text-xs text-slate-500 truncate w-full max-w-[120px] mt-0.5">{item.departure.firstName} {item.departure.lastName}</span>
+                                           <span className="text-[10px] md:text-xs text-slate-500 truncate w-full max-w-[140px] text-center mt-1">{item.departure.firstName} {item.departure.lastName}</span>
                                        </button>
-                                   ) : <span className="text-slate-300 text-xs font-medium my-auto py-4">Brak</span>}
+                                   ) : <span className="text-center text-slate-300 text-xs font-medium py-4">Brak</span>}
                                </div>
                            </div>
                        ))}
                        {ruchDzisiajList.length === 0 && (
-                           <div className="p-6 text-center text-slate-400 font-medium text-sm">Brak zaplanowanego ruchu na dzisiaj.</div>
+                           <div className="p-6 bg-white rounded-3xl border border-slate-200 text-center text-slate-400 font-medium text-sm shadow-sm">Brak zaplanowanego ruchu na dzisiaj.</div>
                        )}
                    </div>
                 </div>
@@ -848,23 +897,23 @@
             </div>
 
             {/* 3. Tabela Rezerwacji */}
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col overflow-hidden relative z-10 mt-6">
-              <div className={`p-4 md:px-5 flex items-center gap-3 cursor-pointer transition-colors ${isRezerwacjeOpen ? 'bg-cyan-600 text-white border-b border-cyan-600' : 'bg-sea3 text-cyan-900 border-b border-transparent'}`} onClick={() => setIsRezerwacjeOpen(!isRezerwacjeOpen)}>
-                 <Icons.CalendarLine className={`w-6 h-6 shrink-0 ${isRezerwacjeOpen ? 'text-white' : 'text-cyan-700'}`} />
-                 <h2 className="text-base md:text-lg font-bold uppercase tracking-tight">Rezerwacje</h2>
-                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${isRezerwacjeOpen ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white/60 hover:bg-white/80 text-cyan-900'}`}>
-                    {isRezerwacjeOpen ? 'ZWIŃ' : 'ROZWIŃ'} {isRezerwacjeOpen ? <Icons.ChevronUp className="w-4 h-4" /> : <Icons.ChevronDown className="w-4 h-4" />}
+            <div ref={rezerwacjeRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 flex flex-col overflow-hidden relative z-10 transition-all scroll-mt-6">
+              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'rezerwacje' ? 'bg-teal text-white border-b border-teal' : 'bg-sea2 text-teal-900 border-b border-transparent'}`} onClick={() => handleModuleToggle('rezerwacje', rezerwacjeRef)}>
+                 <Icons.CalendarLine className={`w-6 h-6 shrink-0 ${activeModule === 'rezerwacje' ? 'text-white' : 'text-teal-700'}`} />
+                 <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Rezerwacje</h2>
+                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'rezerwacje' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white/60 hover:bg-white/80 text-teal-900'}`}>
+                    {activeModule === 'rezerwacje' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'rezerwacje' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                  </button>
               </div>
 
-              {isRezerwacjeOpen && (
+              {activeModule === 'rezerwacje' && (
               <div className="p-4 md:p-6 animate-in slide-in-from-top-2 fade-in duration-200 bg-slate-100">
-                <div className="flex flex-wrap gap-2 w-full mb-4">
-                   <button onClick={() => setFilterStatus('All')} className={`px-4 py-2.5 text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-xl border transition-all ${filterStatus === 'All' ? 'bg-white text-slate-900 border-slate-900 shadow-sm' : 'bg-white text-slate-500 border-slate-300 hover:bg-slate-50'}`}>Wszystkie</button>
-                   {STATUS_OPTIONS.map(s => <button key={s} onClick={() => setFilterStatus(s)} className={`px-4 py-2.5 text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-xl border transition-all flex items-center whitespace-nowrap ${filterStatus === s ? `${getStatusClasses(s)} ring-2 ring-current/20 shadow-sm` : 'bg-white text-slate-500 border-slate-300 hover:bg-slate-50'}`}>{getStatusIcon(s)} {s.split(' - ')[0]}</button>)}
+                <div className="flex flex-wrap gap-2 w-full mb-5 bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
+                   {STATUS_OPTIONS.map(s => <button key={s} onClick={() => setFilterStatus(s)} className={`px-4 py-2.5 text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-xl border transition-all flex items-center whitespace-nowrap ${filterStatus === s ? `${getStatusClasses(s)} ring-2 ring-current/20 shadow-sm` : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'}`}>{getStatusIcon(s)} {s.split(' - ')[0]}</button>)}
+                   <button onClick={() => setFilterStatus('All')} className={`px-5 py-2.5 text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-xl border transition-all ml-auto ${filterStatus === 'All' ? 'bg-slate-800 text-white border-slate-800 shadow-md' : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'}`}>Wszystkie</button>
                 </div>
                 
-                <div className="w-full overflow-x-auto border border-slate-200 rounded-2xl shadow-sm horizontal-scroll-hint bg-white">
+                <div className="w-full overflow-x-auto border border-slate-200 rounded-3xl shadow-sm horizontal-scroll-hint bg-white">
                     <table className="w-full text-left border-collapse table-auto min-w-[750px]">
                       <thead>
                         <tr className="bg-slate-50 text-slate-500 text-[10px] uppercase font-extrabold tracking-wider border-b border-slate-200">
@@ -894,8 +943,8 @@
                                 )}
                             </td>
                             <td className="p-5 whitespace-nowrap">
-                               <div className="mb-2.5 font-medium"><strong className="text-slate-800 text-sm">{formatDatePL(res.startDate)}</strong> <span className="text-xs text-slate-500 ml-1.5 bg-slate-100 px-1.5 py-0.5 rounded-md">{res.startTime}</span></div>
-                               <div className="font-medium"><strong className="text-slate-800 text-sm">{formatDatePL(res.endDate)}</strong> <span className="text-xs text-slate-500 ml-1.5 bg-slate-100 px-1.5 py-0.5 rounded-md">{res.endTime}</span></div>
+                               <div className="mb-2.5 font-medium"><strong className="text-slate-800 text-sm">{formatDatePL(res.startDate)}</strong> <span className="text-xs text-slate-500 ml-1.5 bg-slate-100 px-2 py-1 rounded-md">{res.startTime}</span></div>
+                               <div className="font-medium"><strong className="text-slate-800 text-sm">{formatDatePL(res.endDate)}</strong> <span className="text-xs text-slate-500 ml-1.5 bg-slate-100 px-2 py-1 rounded-md">{res.endTime}</span></div>
                             </td>
                             <td className="p-5 whitespace-nowrap font-black text-slate-800 text-sm">{res.totalPrice.toLocaleString('pl-PL')} zł <div className="text-[11px] text-slate-500 mt-1.5 font-bold">({res.deposit.toLocaleString('pl-PL')} zł)</div></td>
                             <td className="p-5">
@@ -911,92 +960,49 @@
               )}
             </div>
 
-            {/* 4. Map Container */}
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 mt-6">
-              <div className={`p-4 md:px-5 flex items-center gap-3 cursor-pointer transition-colors ${isMapaOpen ? 'bg-indigo-600 text-white border-b border-indigo-600' : 'bg-sea4 text-indigo-900 border-b border-transparent'}`} onClick={() => setIsMapaOpen(!isMapaOpen)}>
-                 <Icons.MapIcon className={`w-6 h-6 shrink-0 ${isMapaOpen ? 'text-white' : 'text-indigo-700'}`} />
-                 <h2 className="text-base md:text-lg font-bold uppercase tracking-tight">Mapa</h2>
-                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${isMapaOpen ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white/60 hover:bg-white/80 text-indigo-900'}`}>
-                    {isMapaOpen ? 'ZWIŃ' : 'ROZWIŃ'} {isMapaOpen ? <Icons.ChevronUp className="w-4 h-4" /> : <Icons.ChevronDown className="w-4 h-4" />}
-                 </button>
-              </div>
-              {isMapaOpen && (
-              <div className="p-4 md:p-6 bg-slate-100 animate-in slide-in-from-top-2 fade-in duration-200">
-                <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-4 mb-4">
-                   <div className="flex gap-2 items-center w-full md:w-auto overflow-x-auto hide-scrollbar pb-1 md:pb-0">
-                      {['4','5','7'].map(c => <button key={c} onClick={() => setMapCapacityFilter(mapCapacityFilter === c ? null : c)} className={`px-6 py-3 text-xs md:text-sm rounded-xl border font-bold min-h-[48px] whitespace-nowrap transition-all ${mapCapacityFilter === c ? 'bg-indigo-50 border-indigo-300 text-indigo-700 shadow-sm' : 'bg-white border-slate-300 text-slate-500 hover:bg-slate-50'}`}>{c} osobowe</button>)}
-                      <div className="hidden md:block w-px h-8 bg-slate-300 shrink-0 mx-3"></div>
-                      <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest whitespace-nowrap hidden sm:block">stań na dzień:</span>
-                      <div className="relative flex items-center bg-white border border-slate-300 rounded-xl focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 shadow-sm transition-colors min-w-[150px] min-h-[48px]">
-                        <input type="date" value={mapReferenceDate} onChange={e => setMapReferenceDate(e.target.value)} className="w-full pl-4 pr-11 py-3 bg-transparent outline-none text-sm font-bold cursor-pointer min-h-[48px] relative z-10" />
-                        <Icons.CalendarInput className="absolute right-4 top-1/2 -translate-y-1/2 text-indigo-600 w-5 h-5 pointer-events-none z-0" />
-                      </div>
-                   </div>
-                </div>
-                <div className="w-full overflow-x-auto overflow-y-hidden h-[100svh] md:h-auto bg-white border border-slate-200 rounded-2xl relative horizontal-scroll-hint shadow-sm">
-                  <div className="absolute top-5 left-5 z-10 bg-white/95 p-4 rounded-xl shadow-md border border-slate-200 flex flex-col gap-3 text-xs font-bold text-slate-800 backdrop-blur-md">
-                    <div className="flex items-center gap-3"><span className="w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-sm"></span> Wolny</div>
-                    <div className="flex items-center gap-3"><span className="w-3.5 h-3.5 rounded-full bg-rose-600 shadow-sm"></span> Zajęty</div>
-                  </div>
-                  <div className="relative h-full aspect-[1.6/1] w-[calc(100svh*1.6)] md:w-full md:h-auto min-w-[900px]">
-                    <div className="absolute inset-0 bg-cover bg-center opacity-90" style={{ backgroundImage: `url('https://greckiedomkizeus.pl/assets/images/APP%20ZEUS%20map.jpg')` }} />
-                    {CABINS.map(cabin => {
-                      const isFilteredOut = mapCapacityFilter && String(cabin.capacity) !== mapCapacityFilter;
-                      const mapStatus = getCabinMapStatus(cabin.id);
-                      let bgClass = 'bg-emerald-500 shadow-md text-white'; 
-                      if (mapStatus === 'occupied') bgClass = 'bg-rose-600 shadow-md text-white'; 
-                      if (isFilteredOut) bgClass = 'bg-slate-300/40 text-slate-400 grayscale opacity-60';
-                      return <button key={cabin.id} onClick={() => handleCabinClick(cabin)} disabled={isFilteredOut} className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-9 h-9 md:w-12 md:h-12 rounded-[12px] md:rounded-[16px] flex items-center justify-center font-extrabold text-xs md:text-sm border-[3px] border-white/90 shadow-lg transition-all ${bgClass} ${isFilteredOut ? 'cursor-not-allowed' : 'hover:scale-110 hover:z-20 focus:outline-none focus:ring-4 focus:ring-indigo-500/40'}`} style={{ left: cabin.left, top: cabin.top }}>{cabin.number}</button>;
-                    })}
-                  </div>
-                </div>
-              </div>
-              )}
-            </div>
-
-            {/* 5. Oś czasu Container */}
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 mt-6">
-               <div className={`p-4 md:px-5 flex flex-row items-center justify-between gap-4 w-full cursor-pointer transition-colors ${isOsCzasuOpen ? 'bg-purple-600 text-white border-b border-purple-600' : 'bg-sea5 text-purple-900 border-b border-transparent'}`} onClick={(e) => setIsOsCzasuOpen(!isOsCzasuOpen)}>
+            {/* 4. Oś czasu Container */}
+            <div ref={osCzasuRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 transition-all scroll-mt-6">
+               <div className={`p-4 md:px-6 flex flex-row items-center justify-between gap-4 w-full cursor-pointer transition-colors ${activeModule === 'osczaus' ? 'bg-indigo-500 text-white border-b border-indigo-500' : 'bg-sea5 text-indigo-900 border-b border-transparent'}`} onClick={(e) => handleModuleToggle('osczaus', osCzasuRef)}>
                   <div className="flex items-center gap-3 shrink-0 mr-2">
-                    <Icons.CalendarLine className={`w-6 h-6 shrink-0 ${isOsCzasuOpen ? 'text-white' : 'text-purple-700'}`} />
-                    <h2 className="text-base md:text-lg font-bold uppercase tracking-tight">Oś czasu</h2>
+                    <Icons.CalendarLine className={`w-6 h-6 shrink-0 ${activeModule === 'osczaus' ? 'text-white' : 'text-indigo-700'}`} />
+                    <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Oś czasu</h2>
                   </div>
-                  <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${isOsCzasuOpen ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white/60 hover:bg-white/80 text-purple-900'}`}>
-                    {isOsCzasuOpen ? 'ZWIŃ' : 'ROZWIŃ'} {isOsCzasuOpen ? <Icons.ChevronUp className="w-4 h-4" /> : <Icons.ChevronDown className="w-4 h-4" />}
+                  <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'osczaus' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white/60 hover:bg-white/80 text-indigo-900'}`}>
+                    {activeModule === 'osczaus' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'osczaus' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                   </button>
                </div>
 
-               {isOsCzasuOpen && (
+               {activeModule === 'osczaus' && (
                <div className="p-4 md:p-6 bg-slate-100 animate-in slide-in-from-top-2 fade-in duration-200">
-                  <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap gap-3 items-center mb-4">
+                  <div className="bg-white p-3 md:p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap gap-3 items-center mb-4">
                     <div className="flex gap-2">
                       <button onClick={centerToday} className="flex-none w-auto items-center px-5 py-2.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold transition-all shadow-sm"><Icons.CalendarLine className="w-4 h-4" /> Dzisiaj</button>
                       <button onClick={showAllTimeline} className="flex-none w-auto items-center px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm"><Icons.Expand className="w-4 h-4" /> Wszystkie</button>
                     </div>
                     <div className="flex items-center bg-white rounded-xl border border-slate-300 shadow-sm p-0.5 ml-auto md:ml-0">
-                       <button onClick={() => shiftTimeline(-1)} className="p-2.5 hover:bg-slate-50 rounded-l-xl text-slate-500 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500/20"><Icons.ChevronLeft className="w-5 h-5" /></button>
+                       <button onClick={() => shiftTimeline(-1)} className="p-2.5 hover:bg-slate-50 rounded-l-xl text-slate-500 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/20"><Icons.ChevronLeft className="w-5 h-5" /></button>
                        <div className="w-px h-6 bg-slate-200"></div>
-                       <button onClick={() => shiftTimeline(1)} className="p-2.5 hover:bg-slate-50 rounded-r-xl text-slate-500 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500/20"><Icons.ChevronRight className="w-5 h-5" /></button>
+                       <button onClick={() => shiftTimeline(1)} className="p-2.5 hover:bg-slate-50 rounded-r-xl text-slate-500 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/20"><Icons.ChevronRight className="w-5 h-5" /></button>
                     </div>
                   </div>
                   
-                  <div className="w-full overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm horizontal-scroll-hint">
+                  <div className="w-full overflow-x-auto bg-white rounded-3xl border border-slate-200 shadow-sm horizontal-scroll-hint">
                     <div className={`${containerMinW} flex flex-col`}>
                       {/* Headers */}
                       {monthsHeader.length > 0 && <div className="flex w-full relative bg-slate-50 border-b border-slate-200">
                           <div className="w-16 md:w-20 shrink-0 sticky left-0 z-30 bg-slate-50 border-r border-slate-200 flex justify-center items-center p-2"><span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest text-center leading-tight">Nr<br/>domku</span></div>
                           <div className="flex flex-1">
-                            {monthsHeader.map((m, i) => <div key={i} className="text-center py-2 border-r border-slate-200 last:border-r-0" style={{ width: `${m.widthPercent}%` }}><span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{m.label}</span></div>)}
+                            {monthsHeader.map((m, i) => <div key={i} className="text-center py-2.5 border-r border-slate-200 last:border-r-0" style={{ width: `${m.widthPercent}%` }}><span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{m.label}</span></div>)}
                           </div>
                       </div>}
-                      <div className="flex w-full border-b-2 border-slate-200 relative pb-1 pt-1 bg-white">
+                      <div className="flex w-full border-b-2 border-slate-200 relative pb-2 pt-1.5 bg-white">
                         <div className="w-16 md:w-20 shrink-0 sticky left-0 z-30 bg-white border-r border-slate-200 shadow-[1px_0_0_0_#e2e8f0]"></div>
                         <div className="flex flex-1">
                           {gridColumns.map((col) => {
                             const isToday = col.dateStr === todayStr;
-                            return <div key={col.id} className={`text-center relative flex flex-col justify-between border-r border-slate-100 last:border-r-0 ${isToday ? 'bg-purple-50/50' : ''}`} style={{ width: `${col.widthPercent}%` }}>
+                            return <div key={col.id} className={`text-center relative flex flex-col justify-between border-r border-slate-100 last:border-r-0 ${isToday ? 'bg-indigo-50' : ''}`} style={{ width: `${col.widthPercent}%` }}>
                               <div className="text-[8px] font-bold text-slate-400 uppercase pt-1">{col.dayName}</div>
-                              <div className={`text-[11px] md:text-xs font-black my-1 ${col.isWeekend ? 'text-rose-500' : 'text-slate-800'}`}>{col.label}</div>
+                              <div className={`text-[11px] md:text-xs font-black my-1.5 ${col.isWeekend ? 'text-rose-500' : 'text-slate-800'}`}>{col.label}</div>
                             </div>
                           })}
                         </div>
@@ -1006,17 +1012,17 @@
                         {Array.from(new Set(reservations.map(r => r.cabinId))).sort((a,b) => a - b).map(cabinId => {
                             const cabin = CABINS.find(c => c.id === cabinId);
                             const cabinReservations = reservations.filter(r => r.cabinId === cabinId);
-                            return <div key={cabinId} className="flex w-full items-center h-12 group hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0">
-                                <div className="w-16 md:w-20 shrink-0 sticky left-0 z-20 bg-white group-hover:bg-slate-50 font-extrabold text-slate-800 text-sm md:text-base flex items-center justify-center border-r border-slate-200 transition-colors shadow-[1px_0_0_0_#e2e8f0]">{cabin?.number}</div>
+                            return <div key={cabinId} className="flex w-full items-center h-12 md:h-14 group hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0">
+                                <div className="w-16 md:w-20 shrink-0 sticky left-0 z-20 bg-white group-hover:bg-slate-50 font-extrabold text-amalfi text-sm md:text-base flex items-center justify-center border-r border-slate-200 transition-colors shadow-[1px_0_0_0_#e2e8f0]">{cabin?.number}</div>
                                 <div className="flex-1 h-full relative bg-white border-r border-slate-200">
                                   <div className="absolute inset-0 flex w-full">
-                                     {gridColumns.map((col) => <div key={col.id} className={`border-r border-slate-100 h-full z-0 ${col.dateStr === todayStr ? 'bg-purple-50/50 border-purple-200 border-r-2' : ''}`} style={{ width: `${col.widthPercent}%` }}></div>)}
+                                     {gridColumns.map((col) => <div key={col.id} className={`border-r border-slate-100 h-full z-0 ${col.dateStr === todayStr ? 'bg-indigo-50 border-indigo-200 border-r-2' : ''}`} style={{ width: `${col.widthPercent}%` }}></div>)}
                                   </div>
                                   {cabinReservations.map(res => {
                                     const styleParams = getReservationStyleParams(res);
                                     if (!styleParams) return null; 
                                     const styleClasses = getStatusClasses(res.status);
-                                    return <div key={res.id} className={`absolute top-1.5 bottom-1.5 rounded-lg shadow-sm flex items-center justify-start overflow-hidden cursor-pointer hover:brightness-95 border-2 ${styleClasses} transition-all z-10`} style={{ left: styleParams.left, width: styleParams.width }} onClick={(e) => handleTimelineReservationClick(res, e)}>
+                                    return <div key={res.id} className={`absolute top-1.5 bottom-1.5 rounded-xl shadow-sm flex items-center justify-start overflow-hidden cursor-pointer hover:brightness-95 border-2 ${styleClasses} transition-all z-10`} style={{ left: styleParams.left, width: styleParams.width }} onClick={(e) => handleTimelineReservationClick(res, e)}>
                                         <div className="px-2 flex items-center gap-2 whitespace-nowrap overflow-hidden">
                                           {getStatusIcon(res.status)} <span className="text-[10px] md:text-xs font-bold truncate">{parseFloat(styleParams.width) > 6 ? `${res.firstName} ${res.lastName}` : ''}</span>
                                         </div>
@@ -1032,61 +1038,65 @@
                )}
             </div>
 
-            {/* 6. MODUŁ: SPRZĄTANIE */}
-            <div className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 mt-6">
-              <div className={`p-4 md:px-5 flex items-center gap-3 w-full cursor-pointer transition-colors ${isSprzatanieOpen ? 'bg-teal-600 text-white border-b border-teal-600' : 'bg-sea2 text-teal-900 border-b border-transparent'}`} onClick={() => setIsSprzatanieOpen(!isSprzatanieOpen)}>
-                 <Icons.Broom className={`w-6 h-6 shrink-0 ${isSprzatanieOpen ? 'text-white' : 'text-teal-700'}`} />
+            {/* 5. MODUŁ: SPRZĄTANIE */}
+            <div ref={sprzatanieRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 mt-6 transition-all scroll-mt-6">
+              <div className={`p-4 md:px-6 flex items-center gap-3 w-full cursor-pointer transition-colors ${activeModule === 'sprzatanie' ? 'bg-apricot text-slate-900 border-b border-apricot' : 'bg-sea6 text-purple-900 border-b border-transparent'}`} onClick={() => handleModuleToggle('sprzatanie', sprzatanieRef)}>
+                 <Icons.Broom className={`w-6 h-6 shrink-0 ${activeModule === 'sprzatanie' ? 'text-slate-900' : 'text-purple-700'}`} />
                  <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Sprzątanie</h2>
-                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${isSprzatanieOpen ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white/60 hover:bg-white/80 text-teal-900'}`}>
-                    {isSprzatanieOpen ? 'ZWIŃ' : 'ROZWIŃ'} {isSprzatanieOpen ? <Icons.ChevronUp className="w-3 h-3" /> : <Icons.ChevronDown className="w-3 h-3" />}
+                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'sprzatanie' ? 'bg-white/40 hover:bg-white/60 text-slate-900' : 'bg-white/60 hover:bg-white/80 text-purple-900'}`}>
+                    {activeModule === 'sprzatanie' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'sprzatanie' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                  </button>
               </div>
 
-              {isSprzatanieOpen && (
+              {activeModule === 'sprzatanie' && (
               <div className="p-4 md:p-6 bg-slate-100 animate-in slide-in-from-top-2 fade-in duration-200">
-                <div className="flex flex-wrap items-center justify-start gap-3 w-full mb-6">
-                   <span className="bg-purple-50 border border-purple-200 text-purple-700 px-5 py-3 rounded-2xl text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-sm flex-1 sm:flex-none text-center whitespace-nowrap">DO SPRZĄTNIĘCIA: {countDoSprzatania}</span>
-                   <span className="bg-zest/10 border border-zest/30 text-zest px-5 py-3 rounded-2xl text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-sm flex-1 sm:flex-none text-center whitespace-nowrap">DO ROZLICZENIA: {countZrobione}</span>
-                   <span className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-3 rounded-2xl text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-sm flex-1 sm:flex-none text-center whitespace-nowrap">ROZLICZONO: {(countRozliczono * 100).toLocaleString('pl-PL')} zł</span>
+                <div className="flex flex-wrap items-center justify-start gap-4 w-full mb-6">
+                   <div className="flex items-center gap-2">
+                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">DO SPRZĄTNIĘCIA:</span>
+                     <span className="bg-purple-50 border border-purple-200 text-purple-700 px-4 py-2 rounded-2xl text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-sm text-center whitespace-nowrap">{countDoSprzatania} DOMKI</span>
+                   </div>
+                   <div className="flex items-center gap-2">
+                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">DO ROZLICZENIA:</span>
+                     <span className="bg-emerald-50 border border-emerald-300 text-emerald-800 px-4 py-2 rounded-2xl text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-sm text-center whitespace-nowrap">{(countZrobioneAmount).toLocaleString('pl-PL')} ZŁOTYCH</span>
+                   </div>
                 </div>
                 
-                <div className="flex flex-wrap gap-2 w-full mb-4">
-                   <button onClick={() => setCleaningFilter('All')} className={`px-5 py-2.5 text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-xl border min-h-[44px] shadow-sm transition-all flex items-center gap-2 ${cleaningFilter === 'All' ? 'bg-white text-slate-800 border-slate-800 ring-2 ring-slate-800/10' : 'bg-white text-slate-500 border-slate-300 hover:bg-slate-50'}`}><Icons.ListIcon /> Wszystkie</button>
-                   {CLEANING_STATUSES.map(s => <button key={s} onClick={() => setCleaningFilter(s)} className={`px-5 py-2.5 text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-xl border min-h-[44px] whitespace-nowrap shadow-sm transition-all flex items-center gap-2 ${cleaningFilter === s ? 'bg-white text-slate-800 border-slate-800 ring-2 ring-slate-800/10' : 'bg-white text-slate-500 border-slate-300 hover:bg-slate-50'}`}>{getStatusIcon(s)} {s}</button>)}
-                </div>
-                <div className="w-full overflow-x-auto border border-slate-200 rounded-3xl shadow-sm horizontal-scroll-hint bg-white">
-                  <table className="w-full text-left border-collapse table-auto min-w-[750px]">
+                <div className="w-full border border-slate-200 rounded-3xl shadow-sm bg-white overflow-hidden">
+                  <table className="w-full text-left border-collapse table-fixed min-w-[500px]">
                     <thead>
                       <tr className="bg-slate-50 text-slate-500 text-[10px] uppercase font-extrabold tracking-wider border-b border-slate-200 select-none">
-                        <th className="sticky left-0 z-20 bg-slate-50 p-5 shadow-[1px_0_0_0_#e2e8f0]">Domek</th>
-                        <th className="p-5">Czas na sprzątnięcie (od - do)</th>
-                        <th className="p-5">Koszt jedn.</th>
-                        <th className="p-5 w-[260px]">Status</th>
+                        <th className="p-4 sm:p-5 w-1/2 border-r border-slate-200">Domek</th>
+                        <th className="p-4 sm:p-5 w-1/2">Czas na sprzątnięcie (od - do)</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-sm">
-                      {cleaningJobs.map(res => {
+                      {cleaningJobs.filter(r => r.cleaningStatus !== 'rozliczono').map(res => {
                         const timeRange = getCleaningTimeRange(res);
                         return <tr key={res.id} className="bg-white hover:bg-slate-50">
-                            <td className="sticky left-0 z-10 bg-white p-5 font-black text-amalfi border-r border-slate-100 transition-colors text-base shadow-[1px_0_0_0_#e2e8f0]">Nr {res.cabinNumber}</td>
-                            <td className="p-5 text-slate-600">
+                            <td className="p-4 sm:p-5 border-r border-slate-100 transition-colors align-middle">
+                                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+                                    <div className="font-black text-amalfi text-base whitespace-nowrap">Nr {res.cabinNumber}</div>
+                                    <select value={res.cleaningStatus} onChange={(e) => handleCleaningStatusChange(res.id, e.target.value)} className={`w-full xl:w-auto xl:min-w-[180px] px-3 py-2.5 rounded-xl text-[10px] font-bold uppercase outline-none border cursor-pointer min-h-[44px] transition-all shadow-sm appearance-none text-center ${res.cleaningStatus === 'zrobione & do rozliczenia' ? 'bg-emerald-50 border-emerald-400 text-emerald-800 focus:ring-2 focus:ring-emerald-500/20' : 'bg-purple-50 border-purple-300 text-purple-800 focus:ring-2 focus:ring-purple-500/30'}`}>
+                                        {CLEANING_STATUSES.filter(s => s !== 'rozliczono').map(s => <option key={s} value={s}>{s}</option>)}
+                                    </select>
+                                </div>
+                            </td>
+                            <td className="p-4 sm:p-5 text-slate-600 align-middle">
                                <div className="flex flex-col gap-2">
                                  <div className="flex items-center gap-3">
                                     <span className="text-[10px] font-bold uppercase text-slate-400 w-6">Od:</span> 
-                                    <button onClick={() => handleEditClick(timeRange.fromRes)} className="font-bold text-amalfi hover:underline bg-amalfi/10 px-2 py-1 rounded-md">{timeRange.fromTime}</button>
+                                    <button onClick={() => handleEditClick(timeRange.fromRes)} className="font-bold text-amalfi hover:underline bg-sea1 border border-sky-200 px-3 py-1.5 rounded-lg transition-colors text-left truncate max-w-[200px] shadow-sm">{timeRange.fromTime}</button>
                                  </div>
                                  <div className="flex items-center gap-3">
                                     <span className="text-[10px] font-bold uppercase text-slate-400 w-6">Do:</span> 
                                     {timeRange.toRes ? (
-                                      <button onClick={() => handleEditClick(timeRange.toRes)} className="font-bold text-amalfi hover:underline bg-amalfi/10 px-2 py-1 rounded-md">{timeRange.toTime}</button>
+                                      <button onClick={() => handleEditClick(timeRange.toRes)} className="font-bold text-amalfi hover:underline bg-sea1 border border-sky-200 px-3 py-1.5 rounded-lg transition-colors text-left truncate max-w-[200px] shadow-sm">{timeRange.toTime}</button>
                                     ) : (
-                                      <span className="font-bold text-slate-800 bg-slate-100 px-2 py-1 rounded-md">{timeRange.toTime}</span>
+                                      <span className="font-medium text-slate-400 px-3 py-1.5">Brak kolejnego</span>
                                     )}
                                  </div>
                                </div>
                             </td>
-                            <td className="p-5 font-black text-slate-800 whitespace-nowrap text-base">100 zł</td>
-                            <td className="p-5"><select value={res.cleaningStatus} onChange={(e) => handleCleaningStatusChange(res.id, e.target.value)} className={`w-full px-5 py-3.5 rounded-2xl text-xs font-bold uppercase outline-none border cursor-pointer min-h-[52px] transition-all shadow-sm ${res.cleaningStatus === 'rozliczono' ? 'bg-emerald-50 border-emerald-400 text-emerald-800 focus:ring-2 focus:ring-emerald-500/30' : res.cleaningStatus === 'zrobione & do rozliczenia' ? 'bg-zest/10 border-zest text-orange-800 focus:ring-2 focus:ring-zest/20' : 'bg-purple-50 border-purple-400 text-purple-800 focus:ring-2 focus:ring-purple-500/30'}`}>{CLEANING_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}</select></td>
                           </tr>;
                       })}
                     </tbody>
@@ -1095,75 +1105,121 @@
               </div>
               )}
             </div>
+
+            {/* 7. Map Container */}
+            <div ref={mapaRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 mt-6 transition-all scroll-mt-6">
+              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'mapa' ? 'bg-lightYellow text-slate-900 border-b border-lightYellow' : 'bg-sea3 text-cyan-900 border-b border-transparent'}`} onClick={() => handleModuleToggle('mapa', mapaRef)}>
+                 <Icons.MapIcon className={`w-6 h-6 shrink-0 ${activeModule === 'mapa' ? 'text-slate-900' : 'text-cyan-700'}`} />
+                 <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Mapa</h2>
+                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'mapa' ? 'bg-slate-900/10 hover:bg-slate-900/20 text-slate-900' : 'bg-white/60 hover:bg-white/80 text-cyan-900'}`}>
+                    {activeModule === 'mapa' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'mapa' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
+                 </button>
+              </div>
+              {activeModule === 'mapa' && (
+              <div className="p-4 md:p-6 bg-slate-100 animate-in slide-in-from-top-2 fade-in duration-200">
+                <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-4 mb-4">
+                   <div className="flex gap-2 items-center w-full md:w-auto overflow-x-auto hide-scrollbar pb-1 md:pb-0">
+                      {['4','5','7'].map(c => <button key={c} onClick={() => setMapCapacityFilter(mapCapacityFilter === c ? null : c)} className={`px-6 py-3 text-xs md:text-sm rounded-xl border font-bold min-h-[48px] whitespace-nowrap transition-all ${mapCapacityFilter === c ? 'bg-yellow-100 border-yellow-400 text-yellow-800 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'}`}>{c} osobowe</button>)}
+                      <div className="hidden md:block w-px h-8 bg-slate-300 shrink-0 mx-3"></div>
+                      <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest whitespace-nowrap hidden sm:block">stań na dzień:</span>
+                      <div className="relative flex items-center bg-slate-50 border border-slate-200 rounded-2xl focus-within:border-yellow-400 shadow-sm transition-colors min-w-[150px] min-h-[48px]">
+                        <input type="date" value={mapReferenceDate} onChange={e => setMapReferenceDate(e.target.value)} className="w-full pl-5 pr-11 py-3 bg-transparent outline-none text-sm font-bold cursor-pointer min-h-[48px] relative z-10" />
+                        <Icons.CalendarInput className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none z-0" />
+                      </div>
+                   </div>
+                </div>
+                <div className="w-full overflow-x-auto overflow-y-hidden h-[100svh] md:h-auto bg-white border border-slate-200 rounded-3xl relative horizontal-scroll-hint shadow-sm">
+                  <div className="absolute top-5 left-5 z-10 bg-white/95 p-4 rounded-xl shadow-md border border-slate-200 flex flex-col gap-3 text-xs font-bold text-slate-800 backdrop-blur-md">
+                    <div className="flex items-center gap-3"><span className="w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-sm"></span> Wolny</div>
+                    <div className="flex items-center gap-3"><span className="w-3.5 h-3.5 rounded-full bg-rose-600 shadow-sm"></span> Zajęty</div>
+                  </div>
+                  <div className="relative h-full aspect-[1.6/1] w-[calc(100svh*1.6)] md:w-full md:h-auto min-w-[900px]">
+                    <div className="absolute inset-0 bg-cover bg-center opacity-90" style={{ backgroundImage: `url('https://greckiedomkizeus.pl/assets/images/APP%20ZEUS%20map.jpg')` }} />
+                    {CABINS.map(cabin => {
+                      const isFilteredOut = mapCapacityFilter && String(cabin.capacity) !== mapCapacityFilter;
+                      const mapStatus = getCabinMapStatus(cabin.id);
+                      let bgClass = 'bg-emerald-500 shadow-md text-white'; 
+                      if (mapStatus === 'occupied') bgClass = 'bg-rose-600 shadow-md text-white'; 
+                      if (isFilteredOut) bgClass = 'bg-slate-300/40 text-slate-400 grayscale opacity-60';
+                      return <button key={cabin.id} onClick={() => handleCabinClick(cabin)} disabled={isFilteredOut} className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-9 h-9 md:w-12 md:h-12 rounded-[12px] md:rounded-[16px] flex items-center justify-center font-extrabold text-xs md:text-sm border-[3px] border-white/90 shadow-xl transition-all ${bgClass} ${isFilteredOut ? 'cursor-not-allowed' : 'hover:scale-110 hover:z-20 focus:outline-none focus:ring-4 focus:ring-yellow-400/40'}`} style={{ left: cabin.left, top: cabin.top }}>{cabin.number}</button>;
+                    })}
+                  </div>
+                </div>
+              </div>
+              )}
+            </div>
+
           </main>
 
-          {/* Modal / Dialog (Formularz Rezerwacji) */}
+          {/* Modal / Dialog (Formularz Rezerwacji) - Naprawiony scroll i flow! */}
           <div className={`fixed inset-0 z-[100] flex justify-center items-end sm:items-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-200 ${isModalOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-            <div className={`bg-white rounded-t-[24px] sm:rounded-[24px] shadow-2xl w-full sm:max-w-2xl flex flex-col h-[92vh] sm:h-auto sm:max-h-[90vh] relative z-[100] border border-slate-200 transition-transform duration-200 overflow-hidden ${isModalOpen ? 'translate-y-0 scale-100' : 'translate-y-full sm:scale-95'}`}>
+            <div className={`bg-white rounded-t-[32px] sm:rounded-[32px] shadow-2xl w-full sm:max-w-2xl flex flex-col h-[95vh] sm:max-h-[90vh] relative overflow-hidden transition-transform duration-200 ${isModalOpen ? 'translate-y-0 scale-100' : 'translate-y-full sm:scale-95'}`}>
               
-              <div className="px-4 sm:px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0 z-[110] rounded-t-[24px]">
-                <h3 className="text-sm md:text-base text-slate-500 font-medium flex items-center gap-1.5 flex-wrap w-full pr-8 leading-snug">
+              {/* Header Modala */}
+              <div className="px-5 sm:px-6 py-5 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
+                <h3 className="text-sm md:text-base text-slate-500 font-medium flex items-center gap-1.5 flex-wrap flex-1 pr-4 leading-snug">
                   {editingId ? 'Edycja rezerwacji:' : 'Nowa rezerwacja:'} 
-                  <span className="font-normal">{generateResId(selectedCabin?.number, formData.startDate, formData.endDate, editingId ? reservations.find(r=>r.id===editingId)?.createdAt : null)}</span>
-                  <span className="text-slate-800 font-extrabold text-base md:text-lg whitespace-nowrap ml-0.5">
-                    - Domek {selectedCabin?.number} ({selectedCabin?.capacity} os.)
+                  <span className="font-normal text-slate-500">{generateResId(selectedCabin?.number, formData.startDate, formData.endDate, editingId ? reservations.find(r=>r.id===editingId)?.createdAt : null)}</span>
+                  <span className="text-slate-900 font-black text-base md:text-lg whitespace-nowrap ml-1">
+                    - Domek {selectedCabin?.number} <span className="font-bold text-slate-500">({selectedCabin?.capacity} os.)</span>
                   </span>
                 </h3>
-                <button onClick={handleCloseModal} className="absolute right-4 top-4 bg-white border border-slate-200 text-slate-500 hover:bg-slate-100 rounded-full p-2 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-200"><Icons.Close /></button>
+                <button onClick={handleCloseModal} className="bg-white border border-slate-200 text-slate-500 hover:bg-slate-100 rounded-full p-2 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-200 shrink-0"><Icons.Close className="w-5 h-5 shrink-0" /></button>
               </div>
               
-              <div className="p-4 sm:p-6 overflow-y-auto flex-1 relative pb-[120px]">
-                <form id="reservationForm" onSubmit={handleSaveReservation} className="space-y-4">
-                  {!editingId ? <div className="w-full px-4 py-3 rounded-xl text-sm font-bold border border-red-200 bg-red-50 text-red-700 flex items-center min-h-[48px] shadow-sm"><Icons.StatusNew /> Nowa - czekam na zadatek</div> : 
-                    <div className="relative z-[150]">
-                      <label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Status rezerwacji *</label>
-                      <button type="button" onClick={() => setStatusDropdownOpen(!statusDropdownOpen)} className={`w-full px-4 py-3 rounded-xl text-sm font-bold text-left border flex items-center justify-between shadow-sm cursor-pointer hover:brightness-95 transition-all min-h-[48px] ${getStatusClasses(formData.status)}`}>
-                        <div className="flex items-center">{getStatusIcon(formData.status)} {formData.status}</div>
-                        <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider opacity-70">Zmień <Icons.ChevronDown className="w-4 h-4" /></div>
-                      </button>
-                      {statusDropdownOpen && <div className="absolute top-[105%] left-0 w-full bg-white border border-slate-200 rounded-xl shadow-xl z-[160] overflow-hidden flex flex-col p-1.5 gap-1 animate-in slide-in-from-top-2 border-t-2 border-t-amalfi">
-                          {STATUS_OPTIONS.map(status => <button key={status} type="button" onClick={(e) => { e.preventDefault(); handleInputChange({ target: { name: 'status', value: status } }); setStatusDropdownOpen(false); }} className={`w-full px-4 py-3 rounded-lg text-sm font-medium text-left border flex items-center transition-colors hover:bg-slate-50 ${formData.status === status ? getStatusClasses(status) : 'bg-transparent border-transparent text-slate-600'}`}>{getStatusIcon(status)} {status}</button>)}
+              {/* Content modala + Przyciski w Normal Flow */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="p-5 sm:p-6 min-h-full flex flex-col pb-[max(env(safe-area-inset-bottom),24px)]">
+                  <form id="reservationForm" onSubmit={handleSaveReservation} className="space-y-4 flex-1 flex flex-col">
+                    <div className="pb-6 space-y-4">
+                      {!editingId ? <div className="w-full px-4 py-3 rounded-xl text-sm font-bold border border-red-200 bg-red-50 text-red-700 flex items-center min-h-[48px] shadow-sm"><Icons.StatusNew /> Nowa - czekam na zadatek</div> : 
+                        <div className="relative z-[150]">
+                          <label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Status rezerwacji *</label>
+                          <button type="button" onClick={() => setStatusDropdownOpen(!statusDropdownOpen)} className={`w-full px-4 py-3 rounded-2xl text-sm font-bold text-left border flex items-center justify-between shadow-sm cursor-pointer hover:brightness-95 transition-all min-h-[56px] ${getStatusClasses(formData.status)}`}>
+                            <div className="flex items-center">{getStatusIcon(formData.status)} {formData.status}</div>
+                            <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider opacity-70">Zmień <Icons.ChevronDown className="w-4 h-4 shrink-0" /></div>
+                          </button>
+                          {statusDropdownOpen && <div className="absolute top-[105%] left-0 w-full bg-white border border-slate-200 rounded-2xl shadow-xl z-[160] overflow-hidden flex flex-col p-1.5 gap-1 animate-in slide-in-from-top-2 border-t-2 border-t-amalfi">
+                              {STATUS_OPTIONS.map(status => <button key={status} type="button" onClick={(e) => { e.preventDefault(); handleInputChange({ target: { name: 'status', value: status } }); setStatusDropdownOpen(false); }} className={`w-full px-4 py-4 rounded-xl text-sm font-medium text-left border flex items-center transition-colors hover:bg-slate-50 ${formData.status === status ? getStatusClasses(status) : 'bg-transparent border-transparent text-slate-600'}`}>{getStatusIcon(status)} {status}</button>)}
+                            </div>}
                         </div>}
-                    </div>}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Imię *</label><input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} required className={`w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-amalfi outline-none transition-colors text-sm font-medium text-slate-800 shadow-sm min-h-[48px] ${getValidationClass(formData.firstName)}`} placeholder="np. Jan" /></div>
-                    <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Nazwisko *</label><input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} required className={`w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-amalfi outline-none transition-colors text-sm font-medium text-slate-800 shadow-sm min-h-[48px] ${getValidationClass(formData.lastName)}`} placeholder="np. Kowalski" /></div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Telefon *</label><input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} required className={`w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-amalfi outline-none text-sm font-medium shadow-sm min-h-[48px] transition-colors ${getValidationClass(formData.phone)}`} placeholder="123 456 789" /></div>
-                    <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Email</label><input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-amalfi text-sm font-medium shadow-sm outline-none transition-colors min-h-[48px]" placeholder="jan@mail.com" /></div>
-                  </div>
-                  <div className="w-full"><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Liczba gości (opcjonalnie)</label><div className="relative"><select name="guestCount" value={formData.guestCount} onChange={handleInputChange} className="w-full pl-4 pr-10 py-3 bg-white border border-slate-300 rounded-xl font-medium text-sm appearance-none shadow-sm focus:border-amalfi transition-colors outline-none min-h-[48px] relative z-10">{Array.from({ length: selectedCabin?.capacity || 4 }).map((_, i) => { const num = (selectedCabin?.capacity || 4) - i; return <option key={num} value={num}>{num} {num === 1 ? 'osoba' : 'osoby'}</option>;})}</select><Icons.ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 w-4 h-4 z-0" /></div></div>
-                  <div className="w-full space-y-4">
-                    <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Zameldowanie do: (15:00 - 22:00) *</label>
-                      <div className="flex flex-col sm:flex-row gap-3"><div className={`relative flex-1 bg-white border border-slate-300 rounded-xl shadow-sm transition-colors focus-within:border-amalfi ${getValidationClass(formData.startDate)}`}><input type="date" name="startDate" value={formData.startDate} onChange={handleInputChange} required className="w-full px-4 py-3 bg-transparent outline-none text-sm font-medium cursor-pointer min-h-[48px] block relative z-10" /></div><input type="time" name="startTime" value={formData.startTime} onChange={handleInputChange} className="w-full sm:w-[120px] px-3 py-3 border border-slate-300 rounded-xl font-medium text-center shadow-sm text-sm focus:border-amalfi outline-none transition-colors bg-white min-h-[48px] relative z-10" /></div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Imię *</label><input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} required className={`w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-amalfi outline-none transition-colors text-sm font-medium text-slate-800 shadow-sm min-h-[56px] ${getValidationClass(formData.firstName)}`} placeholder="np. Jan" /></div>
+                        <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Nazwisko *</label><input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} required className={`w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-amalfi outline-none transition-colors text-sm font-medium text-slate-800 shadow-sm min-h-[56px] ${getValidationClass(formData.lastName)}`} placeholder="np. Kowalski" /></div>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Telefon *</label><input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} required className={`w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-amalfi outline-none text-sm font-medium shadow-sm min-h-[56px] transition-colors ${getValidationClass(formData.phone)}`} placeholder="123 456 789" /></div>
+                        <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Email</label><input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-amalfi text-sm font-medium shadow-sm outline-none transition-colors min-h-[56px]" placeholder="jan@mail.com" /></div>
+                      </div>
+                      <div className="w-full"><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Liczba gości (opcjonalnie)</label><div className="relative"><select name="guestCount" value={formData.guestCount} onChange={handleInputChange} className="w-full pl-5 pr-12 py-3 bg-white border border-slate-300 rounded-2xl font-medium text-sm appearance-none shadow-sm focus:border-amalfi transition-colors outline-none min-h-[56px] relative z-10">{Array.from({ length: selectedCabin?.capacity || 4 }).map((_, i) => { const num = (selectedCabin?.capacity || 4) - i; return <option key={num} value={num}>{num} {num === 1 ? 'osoba' : 'osoby'}</option>;})}</select><Icons.ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 w-4 h-4 z-0" /></div></div>
+                      <div className="w-full space-y-4">
+                        <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Zameldowanie do: (15:00 - 22:00) *</label>
+                          <div className="flex flex-col sm:flex-row gap-3"><div className={`relative flex-1 bg-white border border-slate-300 rounded-2xl shadow-sm transition-colors focus-within:border-amalfi ${getValidationClass(formData.startDate)}`}><input type="date" name="startDate" value={formData.startDate} onChange={handleInputChange} required className="w-full px-5 py-3 bg-transparent outline-none text-sm font-medium cursor-pointer min-h-[56px] block relative z-10" /><Icons.CalendarInput className="absolute right-4 top-1/2 -translate-y-1/2 text-amalfi pointer-events-none z-0" /></div><input type="time" name="startTime" value={formData.startTime} onChange={handleInputChange} className="w-full sm:w-[120px] px-3 py-3 border border-slate-300 rounded-2xl font-medium text-center shadow-sm text-sm focus:border-amalfi outline-none transition-colors bg-white min-h-[56px] relative z-10" /></div>
+                        </div>
+                        <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Doba hotelowa do: (15:00 - 10:00) *</label>
+                          <div className="flex flex-col sm:flex-row gap-3"><div className={`relative flex-1 bg-white border border-slate-300 rounded-2xl shadow-sm transition-colors focus-within:border-amalfi ${getValidationClass(formData.endDate)}`}><input type="date" name="endDate" value={formData.endDate} onChange={handleInputChange} required className="w-full px-5 py-3 bg-transparent outline-none text-sm font-medium cursor-pointer min-h-[56px] block relative z-10" /><Icons.CalendarInput className="absolute right-4 top-1/2 -translate-y-1/2 text-amalfi pointer-events-none z-0" /></div><input type="time" name="endTime" value={formData.endTime} onChange={handleInputChange} className="w-full sm:w-[120px] px-3 py-3 border border-slate-300 rounded-2xl font-medium text-center shadow-sm text-sm focus:border-amalfi outline-none transition-colors bg-white min-h-[56px] relative z-10" /></div>
+                        </div>
+                      </div>
+                      <div className="pt-2"><label className="block text-xs font-semibold text-slate-500 mb-2 ml-1">Opcje dodatkowe</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          {[ {name: 'crib', label: 'Łóżeczko', price: '+100 zł', icon: <Icons.Crib />}, {name: 'bath', label: 'Wanienka', price: '+0 zł', icon: <Icons.BabyBath />}, {name: 'chair', label: 'Krzesełko', price: '+0 zł', icon: <Icons.HighChair />} ].map(item => (
+                            <label key={item.name} className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-colors shadow-sm min-h-[64px] ${formData.addons[item.name] ? 'bg-amalfi/5 border-amalfi text-amalfi ring-2 ring-amalfi/10' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
+                              <input type="checkbox" name={item.name} checked={formData.addons[item.name]} onChange={handleInputChange} className="hidden" />{item.icon}<div className="flex flex-col"><span className="text-sm font-semibold">{item.label}</span><span className="text-[10px] font-bold uppercase opacity-60 tracking-wider">{item.price}</span></div>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      {renderPriceBreakdown()}
                     </div>
-                    <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Doba hotelowa do: (15:00 - 10:00) *</label>
-                      <div className="flex flex-col sm:flex-row gap-3"><div className={`relative flex-1 bg-white border border-slate-300 rounded-xl shadow-sm transition-colors focus-within:border-amalfi ${getValidationClass(formData.endDate)}`}><input type="date" name="endDate" value={formData.endDate} onChange={handleInputChange} required className="w-full px-4 py-3 bg-transparent outline-none text-sm font-medium cursor-pointer min-h-[48px] block relative z-10" /></div><input type="time" name="endTime" value={formData.endTime} onChange={handleInputChange} className="w-full sm:w-[120px] px-3 py-3 border border-slate-300 rounded-xl font-medium text-center shadow-sm text-sm focus:border-amalfi outline-none transition-colors bg-white min-h-[48px] relative z-10" /></div>
+
+                    {/* Przyciski Action w Normal Flow na dole okna */}
+                    <div className="mt-auto pt-6 border-t border-slate-200 flex flex-wrap-reverse sm:flex-nowrap gap-3 justify-end items-center w-full">
+                      {editingId && <button type="button" onClick={() => deleteReservation(editingId)} className="w-full sm:w-auto px-6 py-4 text-rose-600 bg-white border border-rose-200 rounded-2xl text-sm font-semibold shadow-sm hover:bg-rose-50 transition-colors min-h-[56px]">Usuń rezerwację</button>}
+                      <button type="button" onClick={handleCloseModal} className="flex-1 sm:flex-none px-8 py-4 text-slate-600 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold shadow-sm hover:bg-slate-100 transition-colors min-h-[56px]">Anuluj</button>
+                      <button type="submit" className="flex-1 sm:flex-none px-10 py-4 bg-amalfi hover:bg-amalfi/90 text-white rounded-2xl text-sm font-bold shadow-md transition-colors min-h-[56px]">Zapisz</button>
                     </div>
-                  </div>
-                  <div className="pt-2"><label className="block text-xs font-semibold text-slate-500 mb-2 ml-1">Opcje dodatkowe</label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {[ {name: 'crib', label: 'Łóżeczko', price: '+100 zł', icon: <Icons.Crib />}, {name: 'bath', label: 'Wanienka', price: '+0 zł', icon: <Icons.BabyBath />}, {name: 'chair', label: 'Krzesełko', price: '+0 zł', icon: <Icons.HighChair />} ].map(item => (
-                        <label key={item.name} className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-colors shadow-sm min-h-[56px] ${formData.addons[item.name] ? 'bg-breeze/10 border-amalfi text-amalfi' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
-                          <input type="checkbox" name={item.name} checked={formData.addons[item.name]} onChange={handleInputChange} className="hidden" />{item.icon}<div className="flex flex-col"><span className="text-sm font-semibold">{item.label}</span><span className="text-[10px] font-bold uppercase opacity-60 tracking-wider">{item.price}</span></div>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  {formData.startDate && formData.endDate && !isNaN(new Date(formData.startDate).getTime()) && !isNaN(new Date(formData.endDate).getTime()) && new Date(formData.startDate) < new Date(formData.endDate) && (
-                    <div className="bg-gelato/20 p-5 rounded-2xl border border-gelato mt-6 flex flex-col gap-2 shadow-sm">
-                      <div className="flex justify-between items-center text-slate-700 font-medium text-sm">Koszt pobytu: <span className="text-lg text-slate-900 font-bold">{calculatePrice(formData.startDate, formData.endDate, selectedCabin?.capacity || 4, formData.addons).toLocaleString('pl-PL')} zł</span></div>
-                      <div className="w-full h-px bg-gelato/60"></div>
-                      <div className="flex justify-between items-center text-slate-700 font-medium text-sm">Zadatek (30%): <span className="text-lg text-zest font-bold">{Math.round(calculatePrice(formData.startDate, formData.endDate, selectedCabin?.capacity || 4, formData.addons) * 0.3).toLocaleString('pl-PL')} zł</span></div>
-                    </div>
-                  )}
-                </form>
-              </div>
-              <div className="absolute bottom-0 left-0 w-full px-4 sm:px-6 py-4 border-t border-slate-200 flex flex-wrap-reverse sm:flex-nowrap gap-3 justify-end items-center bg-white z-[160] rounded-b-[24px] pb-[max(env(safe-area-inset-bottom),16px)] sm:pb-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
-                {editingId && <button type="button" onClick={() => deleteReservation(editingId)} className="w-full sm:w-auto px-6 py-2.5 text-rose-600 bg-white border border-rose-200 rounded-xl text-sm font-semibold shadow-sm hover:bg-rose-50 transition-colors min-h-[44px]">Usuń</button>}
-                <button type="button" onClick={handleCloseModal} className="flex-1 sm:flex-none px-6 py-2.5 text-slate-600 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold shadow-sm hover:bg-slate-100 transition-colors min-h-[44px]">Anuluj</button>
-                <button form="reservationForm" type="submit" className="flex-1 sm:flex-none px-8 py-2.5 bg-amalfi hover:bg-amalfi/90 text-white rounded-xl text-sm font-bold shadow-md transition-colors min-h-[44px]">Zapisz</button>
+                  </form>
+                </div>
               </div>
             </div>
           </div>
