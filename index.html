@@ -851,10 +851,10 @@
 
             {/* 1. Asystent Rezerwacji */}
             <div ref={asystentRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 transition-all scroll-mt-6">
-              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'asystent' ? 'bg-teal text-white border-b border-teal' : 'bg-white text-teal border-b border-transparent'}`} onClick={() => handleModuleToggle('asystent', asystentRef)}>
-                <Icons.Search className={`w-6 h-6 shrink-0 ${activeModule === 'asystent' ? 'text-white' : 'text-teal'}`} />
+              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'asystent' ? 'bg-cerulean text-white border-b border-cerulean' : 'bg-white text-cerulean border-b border-transparent'}`} onClick={() => handleModuleToggle('asystent', asystentRef)}>
+                <Icons.Search className={`w-6 h-6 shrink-0 ${activeModule === 'asystent' ? 'text-white' : 'text-cerulean'}`} />
                 <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Asystent Rezerwacji</h2>
-                <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'asystent' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-teal/10 hover:bg-teal/20 text-teal'}`}>
+                <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'asystent' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-cerulean/10 hover:bg-cerulean/20 text-cerulean'}`}>
                   {activeModule === 'asystent' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'asystent' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                 </button>
               </div>
@@ -904,10 +904,10 @@
 
             {/* 2. RUCH DZISIAJ */}
             <div ref={ruchRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 transition-all scroll-mt-6">
-              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'ruch' ? 'bg-teal text-white border-b border-teal' : 'bg-white text-teal border-b border-transparent'}`} onClick={() => handleModuleToggle('ruch', ruchRef)}>
-                <Icons.UsersIcon className={`w-6 h-6 shrink-0 ${activeModule === 'ruch' ? 'text-white' : 'text-teal'}`} />
+              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'ruch' ? 'bg-cerulean text-white border-b border-cerulean' : 'bg-white text-cerulean border-b border-transparent'}`} onClick={() => handleModuleToggle('ruch', ruchRef)}>
+                <Icons.UsersIcon className={`w-6 h-6 shrink-0 ${activeModule === 'ruch' ? 'text-white' : 'text-cerulean'}`} />
                 <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Ruch Dzisiaj</h2>
-                <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'ruch' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-teal/10 hover:bg-teal/20 text-teal'}`}>
+                <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'ruch' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-cerulean/10 hover:bg-cerulean/20 text-cerulean'}`}>
                   {activeModule === 'ruch' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'ruch' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                 </button>
               </div>
@@ -961,10 +961,10 @@
 
             {/* 3. Tabela Rezerwacji */}
             <div ref={rezerwacjeRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 flex flex-col overflow-hidden relative z-10 transition-all scroll-mt-6">
-              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'rezerwacje' ? 'bg-teal text-white border-b border-teal' : 'bg-white text-teal border-b border-transparent'}`} onClick={() => handleModuleToggle('rezerwacje', rezerwacjeRef)}>
-                 <Icons.CalendarLine className={`w-6 h-6 shrink-0 ${activeModule === 'rezerwacje' ? 'text-white' : 'text-teal'}`} />
+              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'rezerwacje' ? 'bg-cerulean text-white border-b border-cerulean' : 'bg-white text-cerulean border-b border-transparent'}`} onClick={() => handleModuleToggle('rezerwacje', rezerwacjeRef)}>
+                 <Icons.CalendarLine className={`w-6 h-6 shrink-0 ${activeModule === 'rezerwacje' ? 'text-white' : 'text-cerulean'}`} />
                  <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Rezerwacje</h2>
-                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'rezerwacje' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-teal/10 hover:bg-teal/20 text-teal'}`}>
+                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'rezerwacje' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-cerulean/10 hover:bg-cerulean/20 text-cerulean'}`}>
                     {activeModule === 'rezerwacje' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'rezerwacje' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                  </button>
               </div>
@@ -1025,12 +1025,12 @@
 
             {/* 4. Oś czasu Container */}
             <div ref={osCzasuRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 transition-all scroll-mt-6">
-               <div className={`p-4 md:px-6 flex flex-row items-center justify-between gap-4 w-full cursor-pointer transition-colors ${activeModule === 'osczaus' ? 'bg-teal text-white border-b border-teal' : 'bg-white text-teal border-b border-transparent'}`} onClick={(e) => handleModuleToggle('osczaus', osCzasuRef)}>
+               <div className={`p-4 md:px-6 flex flex-row items-center justify-between gap-4 w-full cursor-pointer transition-colors ${activeModule === 'osczaus' ? 'bg-cerulean text-white border-b border-cerulean' : 'bg-white text-cerulean border-b border-transparent'}`} onClick={(e) => handleModuleToggle('osczaus', osCzasuRef)}>
                   <div className="flex items-center gap-3 shrink-0 mr-2">
-                    <Icons.CalendarLine className={`w-6 h-6 shrink-0 ${activeModule === 'osczaus' ? 'text-white' : 'text-teal'}`} />
+                    <Icons.CalendarLine className={`w-6 h-6 shrink-0 ${activeModule === 'osczaus' ? 'text-white' : 'text-cerulean'}`} />
                     <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Oś czasu</h2>
                   </div>
-                  <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'osczaus' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-teal/10 hover:bg-teal/20 text-teal'}`}>
+                  <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'osczaus' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-cerulean/10 hover:bg-cerulean/20 text-cerulean'}`}>
                     {activeModule === 'osczaus' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'osczaus' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                   </button>
                </div>
@@ -1103,10 +1103,10 @@
 
             {/* 5. MODUŁ: SPRZĄTANIE */}
             <div ref={sprzatanieRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 mt-6 transition-all scroll-mt-6">
-              <div className={`p-4 md:px-6 flex items-center gap-3 w-full cursor-pointer transition-colors ${activeModule === 'sprzatanie' ? 'bg-teal text-white border-b border-teal' : 'bg-white text-teal border-b border-transparent'}`} onClick={() => handleModuleToggle('sprzatanie', sprzatanieRef)}>
-                 <Icons.Broom className={`w-6 h-6 shrink-0 ${activeModule === 'sprzatanie' ? 'text-white' : 'text-teal'}`} />
+              <div className={`p-4 md:px-6 flex items-center gap-3 w-full cursor-pointer transition-colors ${activeModule === 'sprzatanie' ? 'bg-cerulean text-white border-b border-cerulean' : 'bg-white text-cerulean border-b border-transparent'}`} onClick={() => handleModuleToggle('sprzatanie', sprzatanieRef)}>
+                 <Icons.Broom className={`w-6 h-6 shrink-0 ${activeModule === 'sprzatanie' ? 'text-white' : 'text-cerulean'}`} />
                  <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Sprzątanie</h2>
-                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'sprzatanie' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-teal/10 hover:bg-teal/20 text-teal'}`}>
+                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'sprzatanie' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-cerulean/10 hover:bg-cerulean/20 text-cerulean'}`}>
                     {activeModule === 'sprzatanie' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'sprzatanie' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                  </button>
               </div>
