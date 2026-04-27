@@ -76,7 +76,7 @@
     }
   </style>
 </head>
-<body class="antialiased selection:bg-teal selection:text-white pb-[env(safe-area-inset-bottom)]">
+<body class="antialiased selection:bg-cerulean selection:text-white pb-[env(safe-area-inset-bottom)]">
   
   <div id="root"></div>
 
@@ -433,9 +433,12 @@
       const asystentRef = useRef(null);
       const ruchRef = useRef(null);
       const rezerwacjeRef = useRef(null);
-      const mapaRef = useRef(null);
       const osCzasuRef = useRef(null);
       const sprzatanieRef = useRef(null);
+      const mapaModuleRef = useRef(null);
+      
+      const assistantMapRef = useRef(null);
+      const mainMapRef = useRef(null);
 
       const handleModuleToggle = (id, ref) => {
         if (activeModule === id) {
@@ -484,6 +487,20 @@
         const interval = setInterval(checkStatuses, 60000); 
         return () => clearInterval(interval);
       }, []);
+
+      // Scroll Map to right on mobile automatically when active
+      useEffect(() => {
+          if (activeModule === 'asystent' && assistantMapRef.current) {
+              setTimeout(() => {
+                  if (assistantMapRef.current) assistantMapRef.current.scrollLeft = assistantMapRef.current.scrollWidth;
+              }, 50);
+          }
+          if (activeModule === 'mapa' && mainMapRef.current) {
+              setTimeout(() => {
+                  if (mainMapRef.current) mainMapRef.current.scrollLeft = mainMapRef.current.scrollWidth;
+              }, 50);
+          }
+      }, [activeModule, assistantResults]);
 
       const handleCabinClick = (cabin, predefinedData = null) => {
         setSelectedCabin(cabin);
@@ -688,15 +705,17 @@
             </div>
 
             {/* Mapa Asystenta */}
-            <div className="w-full overflow-x-auto overflow-y-hidden h-[60svh] md:h-auto relative mt-6 pt-6 border-t border-slate-200">
-              <div className="relative h-full aspect-[1.6/1] w-[calc(60svh*1.6)] md:w-full md:h-auto min-w-[900px] overflow-hidden bg-slate-200">
-                <div className="absolute inset-0 bg-cover bg-center opacity-40 grayscale" style={{ backgroundImage: `url('https://greckiedomkizeus.pl/assets/images/APP%20ZEUS%20map.jpg')` }} />
-                {CABINS.map(cabin => {
-                  const reqCap = parseInt(assistantData.capacity);
-                  const isAvailable = assistantResults.some(r => r.id === cabin.id);
-                  const bgClass = isAvailable ? getAssistantCabinColor(cabin.capacity, reqCap) : 'bg-slate-300/60 text-slate-500 cursor-not-allowed';
-                  return <button key={cabin.id} onClick={() => isAvailable && handleCabinClick(cabin, { startDate: assistantData.startDate, endDate: assistantData.endDate })} disabled={!isAvailable} className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-9 h-9 md:w-11 md:h-11 rounded-[14px] md:rounded-[18px] flex items-center justify-center font-extrabold text-xs md:text-sm border-2 border-white transition-transform ${bgClass}`} style={{ left: cabin.left, top: cabin.top }}>{cabin.number}</button>;
-                })}
+            <div className="relative w-full border-t border-slate-200 mt-6 pt-6">
+              <div ref={assistantMapRef} className="w-full overflow-x-auto overflow-y-hidden relative bg-white">
+                <div className="relative h-[60svh] md:h-auto aspect-[1.6/1] w-[calc(60svh*1.6)] md:w-full min-w-[900px] overflow-hidden bg-slate-200">
+                  <div className="absolute inset-0 bg-cover bg-center opacity-40 grayscale" style={{ backgroundImage: `url('https://greckiedomkizeus.pl/assets/images/APP%20ZEUS%20map.jpg')` }} />
+                  {CABINS.map(cabin => {
+                    const reqCap = parseInt(assistantData.capacity);
+                    const isAvailable = assistantResults.some(r => r.id === cabin.id);
+                    const bgClass = isAvailable ? getAssistantCabinColor(cabin.capacity, reqCap) : 'bg-slate-300/60 text-slate-500 cursor-not-allowed';
+                    return <button key={cabin.id} onClick={() => isAvailable && handleCabinClick(cabin, { startDate: assistantData.startDate, endDate: assistantData.endDate })} disabled={!isAvailable} className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-9 h-9 md:w-11 md:h-11 rounded-[14px] md:rounded-[18px] flex items-center justify-center font-extrabold text-xs md:text-sm border-2 border-white transition-transform ${bgClass}`} style={{ left: cabin.left, top: cabin.top }}>{cabin.number}</button>;
+                  })}
+                </div>
               </div>
             </div>
           </div>
@@ -852,15 +871,15 @@
             
             {/* Header główny */}
             <header className="flex items-center justify-between gap-4 mb-2 px-1 relative z-10">
-              <h1 className="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight drop-shadow-sm">Greckie Domki <span className="text-teal">Zeus</span></h1>
+              <h1 className="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight drop-shadow-sm">Greckie Domki <span className="text-cerulean">Zeus</span></h1>
             </header>
 
             {/* 1. Asystent Rezerwacji */}
             <div ref={asystentRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 transition-all scroll-mt-6">
-              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'asystent' ? 'bg-teal text-white border-b border-teal' : 'bg-white text-teal border-b border-transparent'}`} onClick={() => handleModuleToggle('asystent', asystentRef)}>
-                <Icons.Search className={`w-6 h-6 shrink-0 ${activeModule === 'asystent' ? 'text-white' : 'text-teal'}`} />
+              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'asystent' ? 'bg-cerulean text-white border-b border-cerulean' : 'bg-white text-cerulean border-b border-transparent'}`} onClick={() => handleModuleToggle('asystent', asystentRef)}>
+                <Icons.Search className={`w-6 h-6 shrink-0 ${activeModule === 'asystent' ? 'text-white' : 'text-cerulean'}`} />
                 <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Asystent Rezerwacji</h2>
-                <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'asystent' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-teal/10 hover:bg-teal/20 text-teal'}`}>
+                <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'asystent' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-cerulean/10 hover:bg-cerulean/20 text-cerulean'}`}>
                   {activeModule === 'asystent' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'asystent' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                 </button>
               </div>
@@ -870,7 +889,7 @@
                   <div className="w-full sm:w-auto min-w-[120px]">
                     <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1 tracking-widest">Ilość osób</label>
                     <div className="relative">
-                      <select name="capacity" value={assistantData.capacity} onChange={handleAssistantInputChange} className="w-full px-5 py-4 bg-white border border-slate-200 rounded-xl focus:border-teal outline-none text-sm font-bold min-h-[56px] appearance-none transition-all shadow-sm">
+                      <select name="capacity" value={assistantData.capacity} onChange={handleAssistantInputChange} className="w-full px-5 py-4 bg-white border border-slate-200 rounded-xl focus:border-cerulean outline-none text-sm font-bold min-h-[56px] appearance-none transition-all shadow-sm">
                         <option value="4">4 osoby</option><option value="5">5 osób</option><option value="7">7 osób</option>
                       </select>
                       <Icons.ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 w-4 h-4" />
@@ -878,14 +897,14 @@
                   </div>
                   <div className="w-full sm:flex-1 min-w-[180px]">
                     <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1 tracking-widest">Zameldowanie</label>
-                    <div className="relative flex items-center w-full bg-white border border-slate-200 rounded-2xl focus-within:border-teal shadow-sm transition-colors">
+                    <div className="relative flex items-center w-full bg-white border border-slate-200 rounded-2xl focus-within:border-cerulean shadow-sm transition-colors">
                       <input type="date" name="startDate" value={assistantData.startDate} onChange={handleAssistantInputChange} required className="w-full pl-5 pr-12 py-4 bg-transparent outline-none text-sm font-bold cursor-pointer min-h-[56px] block relative z-10" />
                       <Icons.CalendarInput className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-0" />
                     </div>
                   </div>
                   <div className="w-full sm:flex-1 min-w-[180px]">
                     <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1 tracking-widest">Doba hotelowa</label>
-                    <div className="relative flex items-center w-full bg-white border border-slate-200 rounded-2xl focus-within:border-teal shadow-sm transition-colors">
+                    <div className="relative flex items-center w-full bg-white border border-slate-200 rounded-2xl focus-within:border-cerulean shadow-sm transition-colors">
                       <input type="date" name="endDate" value={assistantData.endDate} onChange={handleAssistantInputChange} required className="w-full pl-5 pr-12 py-4 bg-transparent outline-none text-sm font-bold cursor-pointer min-h-[56px] block relative z-10" />
                       <Icons.CalendarInput className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-0" />
                     </div>
@@ -908,10 +927,10 @@
 
             {/* 2. RUCH DZISIAJ */}
             <div ref={ruchRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 transition-all scroll-mt-6">
-              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'ruch' ? 'bg-teal text-white border-b border-teal' : 'bg-white text-teal border-b border-transparent'}`} onClick={() => handleModuleToggle('ruch', ruchRef)}>
-                <Icons.UsersIcon className={`w-6 h-6 shrink-0 ${activeModule === 'ruch' ? 'text-white' : 'text-teal'}`} />
+              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'ruch' ? 'bg-cerulean text-white border-b border-cerulean' : 'bg-white text-cerulean border-b border-transparent'}`} onClick={() => handleModuleToggle('ruch', ruchRef)}>
+                <Icons.UsersIcon className={`w-6 h-6 shrink-0 ${activeModule === 'ruch' ? 'text-white' : 'text-cerulean'}`} />
                 <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Ruch Dzisiaj</h2>
-                <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'ruch' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-teal/10 hover:bg-teal/20 text-teal'}`}>
+                <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'ruch' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-cerulean/10 hover:bg-cerulean/20 text-cerulean'}`}>
                   {activeModule === 'ruch' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'ruch' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                 </button>
               </div>
@@ -926,7 +945,7 @@
                     </div>
                 </div>
 
-                <div className="w-full bg-white border-b border-slate-200 mt-4 md:mt-6 overflow-hidden">
+                <div className="w-full bg-white border-b border-slate-200 overflow-hidden">
                    <div className="grid grid-cols-2 bg-slate-50 border-b border-slate-200">
                        <div className="text-center py-3 px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest border-r border-slate-200">Przyjazdy</div>
                        <div className="text-center py-3 px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Wyjazdy</div>
@@ -965,19 +984,21 @@
 
             {/* 3. Tabela Rezerwacji */}
             <div ref={rezerwacjeRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 flex flex-col overflow-hidden relative z-10 transition-all scroll-mt-6">
-              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'rezerwacje' ? 'bg-teal text-white border-b border-teal' : 'bg-white text-teal border-b border-transparent'}`} onClick={() => handleModuleToggle('rezerwacje', rezerwacjeRef)}>
-                 <Icons.CalendarLine className={`w-6 h-6 shrink-0 ${activeModule === 'rezerwacje' ? 'text-white' : 'text-teal'}`} />
+              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'rezerwacje' ? 'bg-cerulean text-white border-b border-cerulean' : 'bg-white text-cerulean border-b border-transparent'}`} onClick={() => handleModuleToggle('rezerwacje', rezerwacjeRef)}>
+                 <Icons.CalendarLine className={`w-6 h-6 shrink-0 ${activeModule === 'rezerwacje' ? 'text-white' : 'text-cerulean'}`} />
                  <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Rezerwacje</h2>
-                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'rezerwacje' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-teal/10 hover:bg-teal/20 text-teal'}`}>
+                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'rezerwacje' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-cerulean/10 hover:bg-cerulean/20 text-cerulean'}`}>
                     {activeModule === 'rezerwacje' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'rezerwacje' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                  </button>
               </div>
 
               {activeModule === 'rezerwacje' && (
               <div className="pt-4 md:pt-6 pb-0 animate-in slide-in-from-top-2 fade-in duration-200 bg-slate-100">
-                <div className="flex flex-wrap gap-2 w-full mb-5 px-4 md:px-6">
-                   {STATUS_OPTIONS.map(s => <button key={s} onClick={() => setFilterStatus(s)} className={`px-4 py-2.5 text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-xl border transition-all flex items-center whitespace-nowrap shadow-sm ${filterStatus === s ? 'bg-white ring-2 ring-teal/30 border-teal text-teal' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}>{getStatusIcon(s)} {s.split(' - ')[0]}</button>)}
-                   <button onClick={() => setFilterStatus('All')} className={`px-5 py-2.5 text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-xl border transition-all ml-auto shadow-sm ${filterStatus === 'All' ? 'bg-white text-slate-900 border-slate-900 ring-1 ring-slate-900' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}>Wszystkie</button>
+                <div className="grid grid-cols-2 md:flex md:flex-wrap gap-2 w-full mb-5 px-4 md:px-6">
+                   {STATUS_OPTIONS.map(s => <button key={s} onClick={() => setFilterStatus(s)} className={`w-full md:w-auto flex items-center justify-center gap-1.5 px-2 md:px-4 py-2.5 text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-xl border transition-all whitespace-nowrap shadow-sm ${filterStatus === s ? 'bg-white ring-2 ring-cerulean/30 border-cerulean text-cerulean' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}>
+                      <span className="shrink-0">{getStatusIcon(s)}</span> <span className="truncate">{s.split(' - ')[0]}</span>
+                   </button>)}
+                   <button onClick={() => setFilterStatus('All')} className={`col-span-2 w-full md:w-auto flex items-center justify-center px-5 py-2.5 text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-xl border transition-all md:ml-auto shadow-sm ${filterStatus === 'All' ? 'bg-white text-slate-900 border-slate-900 ring-1 ring-slate-900' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}>Wszystkie</button>
                 </div>
                 
                 <div className="w-full overflow-x-auto border-y border-slate-200 horizontal-scroll-hint bg-white">
@@ -994,7 +1015,7 @@
                       <tbody className="divide-y divide-slate-100 text-[11px] md:text-sm">
                         {sortedAndFilteredReservations.map(res => (
                           <tr key={res.id} onClick={() => handleEditClick(res)} className="bg-white hover:bg-slate-50 transition-colors group cursor-pointer">
-                            <td className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 p-5 shadow-[1px_0_0_0_#e2e8f0] font-black text-teal transition-colors text-base">
+                            <td className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 p-5 shadow-[1px_0_0_0_#e2e8f0] font-black text-cerulean transition-colors text-base">
                                 Nr {res.cabinNumber} 
                                 <div className="text-[10px] text-slate-400 font-bold mt-1 uppercase tracking-wider">({res.capacity} os.)</div>
                             </td>
@@ -1029,12 +1050,12 @@
 
             {/* 4. Oś czasu Container */}
             <div ref={osCzasuRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 transition-all scroll-mt-6">
-               <div className={`p-4 md:px-6 flex flex-row items-center justify-between gap-4 w-full cursor-pointer transition-colors ${activeModule === 'osczaus' ? 'bg-teal text-white border-b border-teal' : 'bg-white text-teal border-b border-transparent'}`} onClick={(e) => handleModuleToggle('osczaus', osCzasuRef)}>
+               <div className={`p-4 md:px-6 flex flex-row items-center justify-between gap-4 w-full cursor-pointer transition-colors ${activeModule === 'osczaus' ? 'bg-cerulean text-white border-b border-cerulean' : 'bg-white text-cerulean border-b border-transparent'}`} onClick={(e) => handleModuleToggle('osczaus', osCzasuRef)}>
                   <div className="flex items-center gap-3 shrink-0 mr-2">
-                    <Icons.CalendarLine className={`w-6 h-6 shrink-0 ${activeModule === 'osczaus' ? 'text-white' : 'text-teal'}`} />
+                    <Icons.CalendarLine className={`w-6 h-6 shrink-0 ${activeModule === 'osczaus' ? 'text-white' : 'text-cerulean'}`} />
                     <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Oś czasu</h2>
                   </div>
-                  <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'osczaus' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-teal/10 hover:bg-teal/20 text-teal'}`}>
+                  <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'osczaus' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-cerulean/10 hover:bg-cerulean/20 text-cerulean'}`}>
                     {activeModule === 'osczaus' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'osczaus' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                   </button>
                </div>
@@ -1067,7 +1088,7 @@
                         <div className="flex flex-1">
                           {gridColumns.map((col) => {
                             const isToday = col.dateStr === todayStr;
-                            return <div key={col.id} className={`text-center relative flex flex-col justify-between border-r border-slate-100 last:border-r-0 ${isToday ? 'bg-teal/5' : ''}`} style={{ width: `${col.widthPercent}%` }}>
+                            return <div key={col.id} className={`text-center relative flex flex-col justify-between border-r border-slate-100 last:border-r-0 ${isToday ? 'bg-cerulean/5' : ''}`} style={{ width: `${col.widthPercent}%` }}>
                               <div className="text-[8px] font-bold text-slate-400 uppercase pt-1">{col.dayName}</div>
                               <div className={`text-[11px] md:text-xs font-black my-1.5 ${col.isWeekend ? 'text-rose-500' : 'text-slate-800'}`}>{col.label}</div>
                             </div>
@@ -1080,10 +1101,10 @@
                             const cabin = CABINS.find(c => c.id === cabinId);
                             const cabinReservations = reservations.filter(r => r.cabinId === cabinId);
                             return <div key={cabinId} className="flex w-full items-center h-12 md:h-14 group hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0">
-                                <div className="w-16 md:w-20 shrink-0 sticky left-0 z-20 bg-white group-hover:bg-slate-50 font-extrabold text-teal text-sm md:text-base flex items-center justify-center border-r border-slate-200 transition-colors shadow-[1px_0_0_0_#e2e8f0]">{cabin?.number}</div>
+                                <div className="w-16 md:w-20 shrink-0 sticky left-0 z-20 bg-white group-hover:bg-slate-50 font-extrabold text-cerulean text-sm md:text-base flex items-center justify-center border-r border-slate-200 transition-colors shadow-[1px_0_0_0_#e2e8f0]">{cabin?.number}</div>
                                 <div className="flex-1 h-full relative bg-white border-r border-slate-200">
                                   <div className="absolute inset-0 flex w-full">
-                                     {gridColumns.map((col) => <div key={col.id} className={`border-r border-slate-100 h-full z-0 ${col.dateStr === todayStr ? 'bg-teal/5 border-teal/20 border-r-2' : ''}`} style={{ width: `${col.widthPercent}%` }}></div>)}
+                                     {gridColumns.map((col) => <div key={col.id} className={`border-r border-slate-100 h-full z-0 ${col.dateStr === todayStr ? 'bg-cerulean/5 border-cerulean/20 border-r-2' : ''}`} style={{ width: `${col.widthPercent}%` }}></div>)}
                                   </div>
                                   {cabinReservations.map(res => {
                                     const styleParams = getReservationStyleParams(res);
@@ -1107,10 +1128,10 @@
 
             {/* 5. MODUŁ: SPRZĄTANIE */}
             <div ref={sprzatanieRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 mt-6 transition-all scroll-mt-6">
-              <div className={`p-4 md:px-6 flex items-center gap-3 w-full cursor-pointer transition-colors ${activeModule === 'sprzatanie' ? 'bg-teal text-white border-b border-teal' : 'bg-white text-teal border-b border-transparent'}`} onClick={() => handleModuleToggle('sprzatanie', sprzatanieRef)}>
-                 <Icons.Woman className={`w-6 h-6 shrink-0 ${activeModule === 'sprzatanie' ? 'text-white' : 'text-teal'}`} />
+              <div className={`p-4 md:px-6 flex items-center gap-3 w-full cursor-pointer transition-colors ${activeModule === 'sprzatanie' ? 'bg-cerulean text-white border-b border-cerulean' : 'bg-white text-cerulean border-b border-transparent'}`} onClick={() => handleModuleToggle('sprzatanie', sprzatanieRef)}>
+                 <Icons.Woman className={`w-6 h-6 shrink-0 ${activeModule === 'sprzatanie' ? 'text-white' : 'text-cerulean'}`} />
                  <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Sprzątanie</h2>
-                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'sprzatanie' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-teal/10 hover:bg-teal/20 text-teal'}`}>
+                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'sprzatanie' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-cerulean/10 hover:bg-cerulean/20 text-cerulean'}`}>
                     {activeModule === 'sprzatanie' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'sprzatanie' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                  </button>
               </div>
@@ -1137,24 +1158,24 @@
                     {cleaningJobs.filter(r => r.cleaningStatus !== 'rozliczono').map(res => {
                       const timeRange = getCleaningTimeRange(res);
                       return (
-                        <div key={res.id} className="grid grid-cols-1 md:grid-cols-2 bg-white hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition-colors group">
-                            <div className="p-4 md:px-6 md:py-5 border-b md:border-b-0 md:border-r border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                <div className="font-black text-teal text-base whitespace-nowrap">Nr {res.cabinNumber}</div>
-                                <select value={res.cleaningStatus} onChange={(e) => handleCleaningStatusChange(res.id, e.target.value)} className={`w-full sm:w-auto sm:min-w-[180px] px-3 py-2.5 rounded-xl text-[10px] font-bold uppercase outline-none border cursor-pointer min-h-[44px] transition-all shadow-sm appearance-none text-center ${res.cleaningStatus === 'zrobione & do rozliczenia' ? 'bg-emerald-50 border-emerald-400 text-emerald-800 focus:ring-2 focus:ring-emerald-500/20' : 'bg-purple-50 border-purple-300 text-purple-800 focus:ring-2 focus:ring-purple-500/30'}`}>
+                        <div key={res.id} className="grid grid-cols-1 md:grid-cols-2 bg-white hover:bg-slate-50 border-b border-slate-200 last:border-b-0 transition-colors group">
+                            <div className="px-0 py-0 md:px-6 md:py-5 border-b md:border-b-0 md:border-r border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-0 md:gap-3">
+                                <div className="font-black text-cerulean text-base whitespace-nowrap px-4 py-3 md:p-0">Nr {res.cabinNumber}</div>
+                                <select value={res.cleaningStatus} onChange={(e) => handleCleaningStatusChange(res.id, e.target.value)} className={`w-full sm:w-auto sm:min-w-[180px] px-4 py-4 md:py-2.5 rounded-none md:rounded-xl text-[10px] md:text-[11px] font-bold uppercase outline-none border-y md:border cursor-pointer min-h-[48px] md:min-h-[44px] transition-all shadow-sm appearance-none text-center ${res.cleaningStatus === 'zrobione & do rozliczenia' ? 'bg-emerald-50 border-emerald-200 text-emerald-800 focus:ring-2 focus:ring-emerald-500/20' : 'bg-purple-50 border-purple-200 text-purple-800 focus:ring-2 focus:ring-purple-500/30'}`}>
                                     {CLEANING_STATUSES.filter(s => s !== 'rozliczono').map(s => <option key={s} value={s}>{s}</option>)}
                                 </select>
                             </div>
-                            <div className="p-4 md:px-6 md:py-5 flex flex-col justify-center gap-2">
+                            <div className="px-4 py-4 md:px-6 md:py-5 flex flex-col justify-center gap-3 md:gap-2">
                                <div className="flex items-center gap-3">
                                  <span className="text-[10px] font-bold uppercase text-slate-400 w-6">Od:</span> 
-                                 <button onClick={() => handleEditClick(timeRange.fromRes)} className="font-bold text-teal hover:underline bg-white border border-slate-200 px-3 py-1.5 rounded-lg transition-colors text-left truncate max-w-[200px] shadow-sm">{timeRange.fromTime}</button>
+                                 <button onClick={() => handleEditClick(timeRange.fromRes)} className="flex-1 font-bold text-cerulean bg-white border border-slate-200 px-4 py-3 md:py-1.5 rounded-xl transition-colors text-left truncate shadow-sm active:bg-slate-50 md:hover:underline">{timeRange.fromTime}</button>
                                </div>
                                <div className="flex items-center gap-3">
                                  <span className="text-[10px] font-bold uppercase text-slate-400 w-6">Do:</span> 
                                  {timeRange.toRes ? (
-                                   <button onClick={() => handleEditClick(timeRange.toRes)} className="font-bold text-teal hover:underline bg-white border border-slate-200 px-3 py-1.5 rounded-lg transition-colors text-left truncate max-w-[200px] shadow-sm">{timeRange.toTime}</button>
+                                   <button onClick={() => handleEditClick(timeRange.toRes)} className="flex-1 font-bold text-cerulean bg-white border border-slate-200 px-4 py-3 md:py-1.5 rounded-xl transition-colors text-left truncate shadow-sm active:bg-slate-50 md:hover:underline">{timeRange.toTime}</button>
                                  ) : (
-                                   <span className="font-medium text-slate-400 px-3 py-1.5">Brak kolejnego</span>
+                                   <span className="flex-1 font-medium text-slate-400 px-4 py-3 md:py-1.5">Brak kolejnego</span>
                                  )}
                                </div>
                             </div>
@@ -1168,52 +1189,53 @@
             </div>
 
             {/* 6. MODUŁ: MAPA OŚRODKA */}
-            <div ref={mapaRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 mt-6 transition-all scroll-mt-6">
-              <div className={`p-4 md:px-6 flex items-center gap-3 w-full cursor-pointer transition-colors ${activeModule === 'mapa' ? 'bg-teal text-white border-b border-teal' : 'bg-white text-teal border-b border-transparent'}`} onClick={() => handleModuleToggle('mapa', mapaRef)}>
-                 <Icons.MapIcon className={`w-6 h-6 shrink-0 ${activeModule === 'mapa' ? 'text-white' : 'text-teal'}`} />
+            <div ref={mapaModuleRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 mt-6 transition-all scroll-mt-6">
+              <div className={`p-4 md:px-6 flex items-center gap-3 w-full cursor-pointer transition-colors ${activeModule === 'mapa' ? 'bg-cerulean text-white border-b border-cerulean' : 'bg-white text-cerulean border-b border-transparent'}`} onClick={() => handleModuleToggle('mapa', mapaModuleRef)}>
+                 <Icons.MapIcon className={`w-6 h-6 shrink-0 ${activeModule === 'mapa' ? 'text-white' : 'text-cerulean'}`} />
                  <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Mapa Ośrodka</h2>
-                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'mapa' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-teal/10 hover:bg-teal/20 text-teal'}`}>
+                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'mapa' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-cerulean/10 hover:bg-cerulean/20 text-cerulean'}`}>
                     {activeModule === 'mapa' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'mapa' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                  </button>
               </div>
 
               {activeModule === 'mapa' && (
               <div className="pt-4 md:pt-6 pb-0 bg-slate-100 animate-in slide-in-from-top-2 fade-in duration-200">
-                <div className="flex flex-wrap items-center justify-between gap-4 w-full mb-6 px-4 md:px-6">
-                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Podgląd zajętości na dzień:</span>
-                   <div className="relative bg-white border border-slate-200 rounded-xl shadow-sm focus-within:border-teal transition-colors">
-                      <input 
-                        type="date" 
-                        value={mapReferenceDate} 
-                        onChange={(e) => setMapReferenceDate(e.target.value)} 
-                        className="pl-4 pr-10 py-2.5 bg-transparent outline-none text-sm font-bold text-slate-700 cursor-pointer relative z-10 min-h-[44px]" 
-                      />
-                      <Icons.CalendarInput className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-0" />
-                   </div>
-                </div>
-                
-                <div className="w-full overflow-x-auto overflow-y-hidden relative border-y border-slate-200 bg-white">
-                  <div className="relative h-[60svh] md:h-auto aspect-[1.6/1] w-[calc(60svh*1.6)] md:w-full min-w-[900px] overflow-hidden bg-slate-200">
-                    <div className="absolute inset-0 bg-cover bg-center opacity-60" style={{ backgroundImage: `url('https://greckiedomkizeus.pl/assets/images/APP%20ZEUS%20map.jpg')` }} />
-                    {CABINS.map(cabin => {
-                      const status = getCabinMapStatus(cabin.id);
-                      
-                      const bgClass = status === 'free' 
-                        ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg cursor-pointer' 
-                        : 'bg-coral text-white shadow-md cursor-not-allowed opacity-90';
+                <div className="relative w-full border-y border-slate-200 bg-white">
+                  <div className="absolute top-4 left-4 z-20 bg-white/90 backdrop-blur-md border border-slate-200 rounded-2xl shadow-lg focus-within:border-cerulean transition-colors p-1">
+                      <div className="relative">
+                          <input 
+                            type="date" 
+                            value={mapReferenceDate} 
+                            onChange={(e) => setMapReferenceDate(e.target.value)} 
+                            className="pl-4 pr-10 py-2.5 bg-transparent outline-none text-sm font-bold text-slate-700 cursor-pointer relative z-10 min-h-[44px]" 
+                          />
+                          <Icons.CalendarInput className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-0" />
+                      </div>
+                  </div>
+                  
+                  <div ref={mainMapRef} className="w-full overflow-x-auto overflow-y-hidden relative">
+                    <div className="relative h-[60svh] md:h-auto aspect-[1.6/1] w-[calc(60svh*1.6)] md:w-full min-w-[900px] overflow-hidden bg-slate-200">
+                      <div className="absolute inset-0 bg-cover bg-center opacity-60" style={{ backgroundImage: `url('https://greckiedomkizeus.pl/assets/images/APP%20ZEUS%20map.jpg')` }} />
+                      {CABINS.map(cabin => {
+                        const status = getCabinMapStatus(cabin.id);
+                        
+                        const bgClass = status === 'free' 
+                          ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg cursor-pointer' 
+                          : 'bg-coral text-white shadow-md cursor-not-allowed opacity-90';
 
-                      return (
-                        <button 
-                          key={cabin.id} 
-                          onClick={() => status === 'free' && handleCabinClick(cabin, { startDate: mapReferenceDate, endDate: addDays(1) })}
-                          disabled={status !== 'free'}
-                          className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-9 h-9 md:w-11 md:h-11 rounded-[14px] md:rounded-[18px] flex items-center justify-center font-extrabold text-xs md:text-sm border-2 border-white transition-transform hover:scale-110 ${bgClass}`} 
-                          style={{ left: cabin.left, top: cabin.top }}
-                        >
-                          {cabin.number}
-                        </button>
-                      );
-                    })}
+                        return (
+                          <button 
+                            key={cabin.id} 
+                            onClick={() => status === 'free' && handleCabinClick(cabin, { startDate: mapReferenceDate, endDate: addDays(1) })}
+                            disabled={status !== 'free'}
+                            className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-9 h-9 md:w-11 md:h-11 rounded-[14px] md:rounded-[18px] flex items-center justify-center font-extrabold text-xs md:text-sm border-2 border-white transition-transform hover:scale-110 ${bgClass}`} 
+                            style={{ left: cabin.left, top: cabin.top }}
+                          >
+                            {cabin.number}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1248,31 +1270,31 @@
                         <div className="flex items-center">{getStatusIcon(formData.status)} {formData.status}</div>
                         <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider opacity-70">Zmień <Icons.ChevronDown className="w-4 h-4 shrink-0" /></div>
                       </button>
-                      {statusDropdownOpen && <div className="absolute top-[105%] left-0 w-full bg-white border border-slate-200 rounded-2xl shadow-xl z-[160] overflow-hidden flex flex-col p-1.5 gap-1 animate-in slide-in-from-top-2 border-t-2 border-t-teal">
+                      {statusDropdownOpen && <div className="absolute top-[105%] left-0 w-full bg-white border border-slate-200 rounded-2xl shadow-xl z-[160] overflow-hidden flex flex-col p-1.5 gap-1 animate-in slide-in-from-top-2 border-t-2 border-t-cerulean">
                           {STATUS_OPTIONS.map(status => <button key={status} type="button" onClick={(e) => { e.preventDefault(); handleInputChange({ target: { name: 'status', value: status } }); setStatusDropdownOpen(false); }} className={`w-full px-4 py-4 rounded-xl text-sm font-medium text-left border flex items-center transition-colors hover:bg-slate-50 ${formData.status === status ? getStatusClasses(status) : 'bg-transparent border-transparent text-slate-600'}`}>{getStatusIcon(status)} {status}</button>)}
                         </div>}
                     </div>}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Imię *</label><input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} required className={`w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-teal outline-none transition-colors text-sm font-medium text-slate-800 shadow-sm min-h-[56px] ${getValidationClass(formData.firstName)}`} placeholder="np. Jan" /></div>
-                    <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Nazwisko *</label><input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} required className={`w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-teal outline-none transition-colors text-sm font-medium text-slate-800 shadow-sm min-h-[56px] ${getValidationClass(formData.lastName)}`} placeholder="np. Kowalski" /></div>
+                    <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Imię *</label><input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} required className={`w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-cerulean outline-none transition-colors text-sm font-medium text-slate-800 shadow-sm min-h-[56px] ${getValidationClass(formData.firstName)}`} placeholder="np. Jan" /></div>
+                    <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Nazwisko *</label><input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} required className={`w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-cerulean outline-none transition-colors text-sm font-medium text-slate-800 shadow-sm min-h-[56px] ${getValidationClass(formData.lastName)}`} placeholder="np. Kowalski" /></div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Telefon *</label><input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} required className={`w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-teal outline-none text-sm font-medium shadow-sm min-h-[56px] transition-colors ${getValidationClass(formData.phone)}`} placeholder="123 456 789" /></div>
-                    <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Email</label><input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-teal text-sm font-medium shadow-sm outline-none transition-colors min-h-[56px]" placeholder="jan@mail.com" /></div>
+                    <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Telefon *</label><input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} required className={`w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-cerulean outline-none text-sm font-medium shadow-sm min-h-[56px] transition-colors ${getValidationClass(formData.phone)}`} placeholder="123 456 789" /></div>
+                    <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Email</label><input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-cerulean text-sm font-medium shadow-sm outline-none transition-colors min-h-[56px]" placeholder="jan@mail.com" /></div>
                   </div>
-                  <div className="w-full"><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Liczba gości (opcjonalnie)</label><div className="relative"><select name="guestCount" value={formData.guestCount} onChange={handleInputChange} className="w-full pl-5 pr-12 py-3 bg-white border border-slate-300 rounded-2xl font-medium text-sm appearance-none shadow-sm focus:border-teal transition-colors outline-none min-h-[56px] relative z-10">{Array.from({ length: selectedCabin?.capacity || 4 }).map((_, i) => { const num = (selectedCabin?.capacity || 4) - i; return <option key={num} value={num}>{num} {num === 1 ? 'osoba' : 'osoby'}</option>;})}</select><Icons.ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 w-4 h-4 z-0 shrink-0" /></div></div>
+                  <div className="w-full"><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Liczba gości (opcjonalnie)</label><div className="relative"><select name="guestCount" value={formData.guestCount} onChange={handleInputChange} className="w-full pl-5 pr-12 py-3 bg-white border border-slate-300 rounded-2xl font-medium text-sm appearance-none shadow-sm focus:border-cerulean transition-colors outline-none min-h-[56px] relative z-10">{Array.from({ length: selectedCabin?.capacity || 4 }).map((_, i) => { const num = (selectedCabin?.capacity || 4) - i; return <option key={num} value={num}>{num} {num === 1 ? 'osoba' : 'osoby'}</option>;})}</select><Icons.ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 w-4 h-4 z-0 shrink-0" /></div></div>
                   <div className="w-full space-y-4">
                     <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Zameldowanie do: (15:00 - 22:00) *</label>
-                      <div className="flex flex-col sm:flex-row gap-3"><div className={`relative flex-1 bg-white border border-slate-300 rounded-2xl shadow-sm transition-colors focus-within:border-teal ${getValidationClass(formData.startDate)}`}><input type="date" name="startDate" value={formData.startDate} onChange={handleInputChange} required className="w-full px-5 py-3 bg-transparent outline-none text-sm font-medium cursor-pointer min-h-[56px] block relative z-10" /><Icons.CalendarInput className="absolute right-4 top-1/2 -translate-y-1/2 text-teal pointer-events-none z-0 shrink-0" /></div><input type="time" name="startTime" value={formData.startTime} onChange={handleInputChange} className="w-full sm:w-[120px] px-3 py-3 border border-slate-300 rounded-2xl font-medium text-center shadow-sm text-sm focus:border-teal outline-none transition-colors bg-white min-h-[56px] relative z-10" /></div>
+                      <div className="flex flex-col sm:flex-row gap-3"><div className={`relative flex-1 bg-white border border-slate-300 rounded-2xl shadow-sm transition-colors focus-within:border-cerulean ${getValidationClass(formData.startDate)}`}><input type="date" name="startDate" value={formData.startDate} onChange={handleInputChange} required className="w-full px-5 py-3 bg-transparent outline-none text-sm font-medium cursor-pointer min-h-[56px] block relative z-10" /><Icons.CalendarInput className="absolute right-4 top-1/2 -translate-y-1/2 text-cerulean pointer-events-none z-0 shrink-0" /></div><input type="time" name="startTime" value={formData.startTime} onChange={handleInputChange} className="w-full sm:w-[120px] px-3 py-3 border border-slate-300 rounded-2xl font-medium text-center shadow-sm text-sm focus:border-cerulean outline-none transition-colors bg-white min-h-[56px] relative z-10" /></div>
                     </div>
                     <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Doba hotelowa do: (15:00 - 10:00) *</label>
-                      <div className="flex flex-col sm:flex-row gap-3"><div className={`relative flex-1 bg-white border border-slate-300 rounded-2xl shadow-sm transition-colors focus-within:border-teal ${getValidationClass(formData.endDate)}`}><input type="date" name="endDate" value={formData.endDate} onChange={handleInputChange} required className="w-full px-5 py-3 bg-transparent outline-none text-sm font-medium cursor-pointer min-h-[56px] block relative z-10" /><Icons.CalendarInput className="absolute right-4 top-1/2 -translate-y-1/2 text-teal pointer-events-none z-0 shrink-0" /></div><input type="time" name="endTime" value={formData.endTime} onChange={handleInputChange} className="w-full sm:w-[120px] px-3 py-3 border border-slate-300 rounded-2xl font-medium text-center shadow-sm text-sm focus:border-teal outline-none transition-colors bg-white min-h-[56px] relative z-10" /></div>
+                      <div className="flex flex-col sm:flex-row gap-3"><div className={`relative flex-1 bg-white border border-slate-300 rounded-2xl shadow-sm transition-colors focus-within:border-cerulean ${getValidationClass(formData.endDate)}`}><input type="date" name="endDate" value={formData.endDate} onChange={handleInputChange} required className="w-full px-5 py-3 bg-transparent outline-none text-sm font-medium cursor-pointer min-h-[56px] block relative z-10" /><Icons.CalendarInput className="absolute right-4 top-1/2 -translate-y-1/2 text-cerulean pointer-events-none z-0 shrink-0" /></div><input type="time" name="endTime" value={formData.endTime} onChange={handleInputChange} className="w-full sm:w-[120px] px-3 py-3 border border-slate-300 rounded-2xl font-medium text-center shadow-sm text-sm focus:border-cerulean outline-none transition-colors bg-white min-h-[56px] relative z-10" /></div>
                     </div>
                   </div>
                   <div className="pt-2"><label className="block text-xs font-semibold text-slate-500 mb-2 ml-1">Opcje dodatkowe</label>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       {[ {name: 'crib', label: 'Łóżeczko', price: '+100 zł', icon: <Icons.Crib />}, {name: 'bath', label: 'Wanienka', price: '+0 zł', icon: <Icons.BabyBath />}, {name: 'chair', label: 'Krzesełko', price: '+0 zł', icon: <Icons.HighChair />} ].map(item => (
-                        <label key={item.name} className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-colors shadow-sm min-h-[64px] ${formData.addons[item.name] ? 'bg-teal/5 border-teal text-teal ring-2 ring-teal/10' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
+                        <label key={item.name} className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-colors shadow-sm min-h-[64px] ${formData.addons[item.name] ? 'bg-cerulean/5 border-cerulean text-cerulean ring-2 ring-cerulean/10' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
                           <input type="checkbox" name={item.name} checked={formData.addons[item.name]} onChange={handleInputChange} className="hidden" />{item.icon}<div className="flex flex-col"><span className="text-sm font-semibold">{item.label}</span><span className="text-[10px] font-bold uppercase opacity-60 tracking-wider">{item.price}</span></div>
                         </label>
                       ))}
@@ -1284,7 +1306,7 @@
                   <div className="mt-8 pt-6 border-t border-slate-200 flex flex-col sm:flex-row gap-3 justify-end items-center w-full">
                     {editingId && <button type="button" onClick={() => deleteReservation(editingId)} className="w-full sm:w-auto px-6 py-4 text-rose-600 bg-rose-50/50 hover:bg-rose-100 rounded-2xl text-sm font-bold transition-colors min-h-[56px] sm:mr-auto">Usuń rezerwację</button>}
                     <button type="button" onClick={handleCloseModal} className="w-full sm:w-auto px-8 py-4 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-2xl text-sm font-bold transition-colors min-h-[56px] ml-0 sm:ml-auto">Anuluj</button>
-                    <button type="submit" className="w-full sm:w-auto px-10 py-4 bg-teal hover:bg-teal/90 text-white rounded-2xl text-base font-bold shadow-md transition-colors min-h-[56px]">Zapisz</button>
+                    <button type="submit" className="w-full sm:w-auto px-10 py-4 bg-cerulean hover:bg-cerulean/90 text-white rounded-2xl text-base font-bold shadow-md transition-colors min-h-[56px]">Zapisz</button>
                   </div>
 
                 </form>
