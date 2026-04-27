@@ -47,11 +47,18 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* Tło Piaszczysta Plaża (Noise Pattern) */
+    /* Zoptymalizowane sprzętowo Tło Piaszczysta Plaża (Noise Pattern) zapobiegające lagom na mobile */
     body {
       background-color: #f4ede4; 
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: -1;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
-      background-attachment: fixed;
+      transform: translateZ(0); /* Wymuszenie sprzętowej akceleracji GPU (eliminuje zacinki scrolla) */
     }
 
     /* Niewidzialne rozszerzenie klikalnego obszaru kalendarza HTML */
@@ -116,7 +123,7 @@
     ];
 
     // --- ICONS (SVG) ---
-    // GWARANCJA NIEZMIENNOŚCI WYMIARÓW: Każda ikona ma na stałe "w-5 h-5 shrink-0" (lub 6)
+    // Zablokowane wymiary klasami typu "w-6 h-6 shrink-0" zapobiegają uciekaniu ikon z kontenerów
     const Icons = {
       SortDefault: ({ className }) => <svg className={`w-3 h-3 ml-1 shrink-0 ${className || 'text-slate-400 inline'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>,
       SortAsc: ({ className }) => <svg className={`w-3 h-3 ml-1 shrink-0 ${className || 'text-cerulean inline'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 15l7-7 7 7"/></svg>,
@@ -126,25 +133,25 @@
       ChevronDown: ({ className }) => <svg className={`w-4 h-4 shrink-0 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"/></svg>,
       ChevronUp: ({ className }) => <svg className={`w-4 h-4 shrink-0 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7"/></svg>,
       Close: ({ className }) => <svg className={`w-5 h-5 shrink-0 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>,
-      CalendarLine: ({ className }) => <svg className={`w-6 h-6 shrink-0 inline-block mr-2 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>,
-      Expand: ({ className }) => <svg className={`w-4 h-4 shrink-0 inline-block mr-1.5 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>,
-      Search: ({ className }) => <svg className={`w-6 h-6 shrink-0 inline-block mr-2 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>,
-      MapIcon: ({ className }) => <svg className={`w-6 h-6 shrink-0 inline-block mr-2 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>,
+      CalendarLine: ({ className }) => <svg className={`shrink-0 ${className || 'w-5 h-5 inline-block mr-1.5'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>,
+      Expand: ({ className }) => <svg className={`w-5 h-5 shrink-0 inline-block mr-1.5 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>,
+      Search: ({ className }) => <svg className={`shrink-0 ${className || 'w-6 h-6 inline-block mr-2'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>,
+      MapIcon: ({ className }) => <svg className={`shrink-0 ${className || 'w-6 h-6 inline-block mr-2'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>,
       CalendarInput: ({ className }) => <svg className={`w-5 h-5 shrink-0 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>,
       Crib: () => <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 6h16M4 10h16M4 14h16M4 6v12a2 2 0 002 2h12a2 2 0 002-2V6M8 18v3m8-3v3" /></svg>,
       BabyBath: () => <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 12v4a4 4 0 01-4 4H8a4 4 0 01-4-4v-4m16 0H4m8-6v6m-4-2h8" /></svg>,
       HighChair: () => <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 10h10M8 10V6a2 2 0 012-2h4a2 2 0 012 2v4m-9 0L5 22m10-12l2 12m-9-6h6" /></svg>,
       Clock: () => <svg className="w-4 h-4 inline mr-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
-      Broom: ({ className }) => <svg className={`w-6 h-6 inline mr-2 shrink-0 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21l3-14m0 0l3 14m-3-14c1.5 0 3-1 3-2 0-2-3-3-3s-3 1-3 3c0 1 1.5 2 3 2zm-4 4h8" /></svg>,
+      Broom: ({ className }) => <svg className={`shrink-0 ${className || 'w-6 h-6 inline mr-2'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21l3-14m0 0l3 14m-3-14c1.5 0 3-1 3-2 0-2-3-3-3s-3 1-3 3c0 1 1.5 2 3 2zm-4 4h8" /></svg>,
       StatusNew: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
       StatusConfirmed: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" /></svg>,
       StatusInProgress: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
       StatusDone: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7M5 18l4 4L19 12" /></svg>,
       StatusCanceled: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
-      ListIcon: ({ className }) => <svg className={`w-4 h-4 inline mr-1.5 shrink-0 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>,
+      ListIcon: ({ className }) => <svg className={`w-5 h-5 inline mr-1.5 shrink-0 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 12h16M4 18h16" /></svg>,
       WrenchIcon: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" /></svg>,
       CheckDouble: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7M5 18l4 4L19 12" /></svg>,
-      UsersIcon: ({ className }) => <svg className={`w-6 h-6 inline mr-2 shrink-0 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+      UsersIcon: ({ className }) => <svg className={`shrink-0 ${className || 'w-6 h-6 inline-block mr-1.5'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
     };
 
     // --- KOMPONENTY UI ---
@@ -257,7 +264,7 @@
       return d.toISOString();
     };
 
-    // Przykładowe dane
+    // Przykładowe dane z symulacją przyjazdów/wyjazdów
     const baseReservations = [
       { id: '101', cabinId: 24, cabinNumber: '24', firstName: 'Piotr', lastName: 'Wychodzący', phone: '111 222 333', email: 'out@ex.com', capacity: '4', guestCount: '4', startDate: addDays(-3), startTime: '15:00', endDate: addDays(0), endTime: '10:00', status: 'Zrealizowana - goście wymeldowani', addons: { crib: false, bath: false, chair: false }, cleaningStatus: 'do sprzątnięcia' },
       { id: '102', cabinId: 24, cabinNumber: '24', firstName: 'Jan', lastName: 'Kowalski', phone: '123 456 789', email: 'jan@ex.com', capacity: '4', guestCount: '4', startDate: addDays(0), startTime: '15:00', endDate: addDays(5), endTime: '10:00', status: 'W trakcie - zapłacona w całości', addons: { crib: true, bath: false, chair: true } },
@@ -412,7 +419,8 @@
       const [selectedCabin, setSelectedCabin] = useState(null);
       const [editingId, setEditingId] = useState(null);
       const [sortConfig, setSortConfig] = useState({ key: 'startDate', direction: 'asc' });
-      const [filterStatus, setFilterStatus] = useState('Nowa - czekam na zadatek'); // Zgodnie z prośbą domyślna to nowa
+      // Domyślny filtr dla Rezerwacji to "Nowa"
+      const [filterStatus, setFilterStatus] = useState('Nowa - czekam na zadatek');
       const [cleaningFilter, setCleaningFilter] = useState('All');
       const [mapCapacityFilter, setMapCapacityFilter] = useState(null); 
       const [mapReferenceDate, setMapReferenceDate] = useState(getTodayString());
@@ -608,26 +616,92 @@
       const renderAssistantMessage = () => {
         if (!assistantResults || assistantResults.length === 0) return null;
         const req = parseInt(assistantData.capacity);
-        const count4 = assistantResults.filter(c => c.capacity === 4).length;
-        const count5 = assistantResults.filter(c => c.capacity === 5).length;
-        const count7 = assistantResults.filter(c => c.capacity === 7).length;
+        
+        const res4 = assistantResults.filter(c => c.capacity === 4);
+        const res5 = assistantResults.filter(c => c.capacity === 5);
+        const res7 = assistantResults.filter(c => c.capacity === 7);
+
+        const summaryParts = [];
+        if (res4.length > 0 && req <= 4) {
+            summaryParts.push(<span key="4"><strong className="text-emerald-600">{res4.length} szt.</strong> (zielone) 4-osobowe {req === 4 && <span className="text-slate-400 font-semibold text-[11px]">(idealne)</span>}</span>);
+        }
+        if (res5.length > 0 && req <= 5) {
+            summaryParts.push(<span key="5"><strong className="text-zest">{res5.length} szt.</strong> (pomarańczowe) 5-osobowe {req === 5 && <span className="text-slate-400 font-semibold text-[11px]">(idealne)</span>}</span>);
+        }
+        if (res7.length > 0 && req <= 7) {
+            summaryParts.push(<span key="7"><strong className={req === 4 ? 'text-cerulean' : 'text-zest'}>{res7.length} szt.</strong> ({req === 4 ? 'niebieskie' : 'pomarańczowe'}) 7-osobowe {req === 7 && <span className="text-slate-400 font-semibold text-[11px]">(idealne)</span>}</span>);
+        }
+
         return (
-          <div className="mb-6 text-slate-700 text-xs md:text-sm font-medium bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm leading-relaxed w-full">
-            <div className="font-bold text-base text-slate-800">Znaleziono {assistantResults.length} wolnych domków dla {req} osób:</div>
-            <ul className="space-y-1.5 ml-2 mt-3 text-sm">
-               {count4 > 0 && req <= 4 && <li><strong className="text-emerald-600">{count4} szt.</strong> (zielone) 4-osobowe {req === 4 ? <span className="text-slate-400 font-semibold text-[11px]">(idealne)</span> : ''}</li>}
-               {count5 > 0 && req <= 5 && <li><strong className="text-zest">{count5} szt.</strong> (pomarańczowe) 5-osobowe {req === 5 ? <span className="text-slate-400 font-semibold text-[11px]">(idealne)</span> : ''}</li>}
-               {count7 > 0 && req <= 7 && <li><strong className={req === 4 ? 'text-amalfi' : 'text-zest'}>{count7} szt.</strong> ({req === 4 ? 'niebieskie' : 'pomarańczowe'}) 7-osobowe {req === 7 ? <span className="text-slate-400 font-semibold text-[11px]">(idealne)</span> : ''}</li>}
-            </ul>
+          <div className="w-full flex flex-col gap-4">
+            <div className="text-slate-700 text-sm font-medium bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm leading-relaxed w-full">
+              <div className="font-bold text-base text-slate-800 mb-2">Znaleziono {assistantResults.length} wolnych domków dla {req} osób:</div>
+              <div className="flex flex-wrap gap-1 items-center">
+                {summaryParts.map((part, idx) => (
+                  <React.Fragment key={idx}>
+                    {part}{idx < summaryParts.length - 1 && <span className="mr-1 font-bold">, </span>}
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+              <table className="w-full text-left border-collapse table-fixed">
+                <tbody className="divide-y divide-slate-100 text-sm">
+                  {[4, 5, 7].map(cap => {
+                    const cabinsOfCap = assistantResults.filter(c => c.capacity === cap);
+                    if (cabinsOfCap.length === 0 || req > cap) return null;
+                    
+                    let tagColor = 'bg-emerald-500 hover:bg-emerald-600'; 
+                    if (cap === 5) tagColor = 'bg-zest hover:bg-zest/90'; 
+                    if (cap === 7) tagColor = req === 4 ? 'bg-cerulean hover:bg-cerulean/90' : 'bg-zest hover:bg-zest/90';
+
+                    return (
+                      <tr key={cap} className="bg-white">
+                        <td className="p-4 w-[120px] md:w-[150px] border-r border-slate-100 bg-slate-50 font-bold text-slate-700 align-middle">
+                          {cap}-osobowe
+                        </td>
+                        <td className="p-4 align-middle">
+                          <div className="flex flex-wrap gap-3">
+                            {cabinsOfCap.map(cabin => (
+                              <button 
+                                key={cabin.id} 
+                                onClick={() => handleCabinClick(cabin, { startDate: assistantData.startDate, endDate: assistantData.endDate })}
+                                className={`px-6 py-3 rounded-xl text-sm font-bold text-white shadow-sm transition-transform hover:scale-105 min-h-[48px] min-w-[64px] flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-slate-300 ${tagColor}`}
+                              >
+                                Nr {cabin.number}
+                              </button>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mapa Asystenta */}
+            <div className="w-full overflow-x-auto overflow-y-hidden h-[60svh] md:h-auto bg-slate-50 rounded-2xl border border-slate-300 relative shadow-sm mt-2">
+              <div className="relative h-full aspect-[1.6/1] w-[calc(60svh*1.6)] md:w-full md:h-auto min-w-[900px]">
+                <div className="absolute inset-0 bg-cover bg-center opacity-40 grayscale" style={{ backgroundImage: `url('https://greckiedomkizeus.pl/assets/images/APP%20ZEUS%20map.jpg')` }} />
+                {CABINS.map(cabin => {
+                  const reqCap = parseInt(assistantData.capacity);
+                  const isAvailable = assistantResults.some(r => r.id === cabin.id);
+                  const bgClass = isAvailable ? getAssistantCabinColor(cabin.capacity, reqCap) : 'bg-slate-300/60 text-slate-500 cursor-not-allowed';
+                  return <button key={cabin.id} onClick={() => isAvailable && handleCabinClick(cabin, { startDate: assistantData.startDate, endDate: assistantData.endDate })} disabled={!isAvailable} className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-9 h-9 md:w-11 md:h-11 rounded-[14px] md:rounded-[18px] flex items-center justify-center font-extrabold text-xs md:text-sm border-2 border-white transition-transform ${bgClass}`} style={{ left: cabin.left, top: cabin.top }}>{cabin.number}</button>;
+                })}
+              </div>
+            </div>
           </div>
         );
       };
 
       const getAssistantCabinColor = (cabinCap, reqCap) => {
-        if (cabinCap === reqCap) return 'bg-emerald-500 text-white shadow-md z-10 cursor-pointer hover:scale-105';
-        if (reqCap === 4 && cabinCap === 5) return 'bg-zest text-white shadow-md z-10 cursor-pointer hover:scale-105';
-        if (reqCap === 4 && cabinCap === 7) return 'bg-amalfi text-white shadow-md z-10 cursor-pointer hover:scale-105';
-        if (reqCap === 5 && cabinCap === 7) return 'bg-zest text-white shadow-md z-10 cursor-pointer hover:scale-105';
+        if (cabinCap === reqCap) return 'bg-emerald-500 text-white shadow-lg z-10 cursor-pointer hover:scale-105';
+        if (reqCap === 4 && cabinCap === 5) return 'bg-zest text-white shadow-lg z-10 cursor-pointer hover:scale-105';
+        if (reqCap === 4 && cabinCap === 7) return 'bg-cerulean text-white shadow-lg z-10 cursor-pointer hover:scale-105';
+        if (reqCap === 5 && cabinCap === 7) return 'bg-zest text-white shadow-lg z-10 cursor-pointer hover:scale-105';
         return 'bg-slate-300/60 text-slate-500 cursor-not-allowed';
       };
 
@@ -691,9 +765,9 @@
       }, [reservations, sortConfig, filterStatus]);
 
       const todayStr = getTodayString();
-      const arrivalsToday = reservations.filter(r => r.startDate === todayStr && r.status !== 'Anulowana').sort((a,b) => a.startTime.localeCompare(b.startTime));
-      const departuresToday = reservations.filter(r => r.endDate === todayStr && r.status !== 'Anulowana').sort((a,b) => a.endTime.localeCompare(b.endTime));
-      const peopleOnSite = reservations.reduce((sum, res) => (res.startDate <= todayStr && res.endDate >= todayStr && res.status !== 'Anulowana') ? sum + parseInt(res.guestCount || res.capacity || 0) : sum, 0);
+      const arrivalsToday = useMemo(() => reservations.filter(r => r.startDate === todayStr && r.status !== 'Anulowana').sort((a,b) => a.startTime.localeCompare(b.startTime)), [reservations, todayStr]);
+      const departuresToday = useMemo(() => reservations.filter(r => r.endDate === todayStr && r.status !== 'Anulowana').sort((a,b) => a.endTime.localeCompare(b.endTime)), [reservations, todayStr]);
+      const peopleOnSite = useMemo(() => reservations.reduce((sum, res) => (res.startDate <= todayStr && res.endDate >= todayStr && res.status !== 'Anulowana') ? sum + parseInt(res.guestCount || res.capacity || 0) : sum, 0), [reservations, todayStr]);
 
       // Ruch dzisiaj (zgrupowany per domek)
       const ruchDzisiajList = useMemo(() => {
@@ -718,13 +792,13 @@
         setReservations(prev => prev.map(r => r.id === resId ? { ...r, cleaningStatus: newStatus } : r));
       };
 
-      const cleaningJobsRaw = reservations.filter(r => r.cleaningStatus);
-      const cleaningJobs = cleaningFilter === 'All' ? cleaningJobsRaw : cleaningJobsRaw.filter(r => r.cleaningStatus === cleaningFilter);
+      const cleaningJobsRaw = useMemo(() => reservations.filter(r => r.cleaningStatus), [reservations]);
+      const cleaningJobs = useMemo(() => cleaningFilter === 'All' ? cleaningJobsRaw : cleaningJobsRaw.filter(r => r.cleaningStatus === cleaningFilter), [cleaningJobsRaw, cleaningFilter]);
 
-      const countDoSprzatania = cleaningJobsRaw.filter(r => r.cleaningStatus === 'do sprzątnięcia').length;
-      const countZrobioneAmount = cleaningJobsRaw.filter(r => r.cleaningStatus === 'zrobione & do rozliczenia').length * 100;
+      const countDoSprzatania = useMemo(() => cleaningJobsRaw.filter(r => r.cleaningStatus === 'do sprzątnięcia').length, [cleaningJobsRaw]);
+      const countZrobioneAmount = useMemo(() => cleaningJobsRaw.filter(r => r.cleaningStatus === 'zrobione & do rozliczenia').length * 100, [cleaningJobsRaw]);
 
-      const { type: gridType, columns: gridColumns, monthsHeader } = getGridSpecs(timelineStart, timelineEnd);
+      const { type: gridType, columns: gridColumns, monthsHeader } = useMemo(() => getGridSpecs(timelineStart, timelineEnd), [timelineStart, timelineEnd]);
       const containerMinW = isAllTimelineView ? 'min-w-full' : (gridType === 'days' ? 'min-w-[900px] md:min-w-[1000px]' : 'min-w-full');
 
       const getCleaningTimeRange = (res) => {
@@ -753,7 +827,7 @@
             <div className="flex justify-between items-center text-slate-700 font-medium text-sm">
               <div className="flex items-center">
                  Koszt pobytu: 
-                 <span className="font-normal text-slate-500 text-xs ml-2">({nights} nocy x {avgRate} zł)</span>
+                 <span className="font-normal text-slate-500 text-xs ml-2">({nights} {nights === 1 ? 'noc' : 'nocy'} x {avgRate} zł)</span>
               </div>
               <span className="text-xl text-slate-900 font-black">{totalPrice.toLocaleString('pl-PL')} zł</span>
             </div>
@@ -777,10 +851,10 @@
 
             {/* 1. Asystent Rezerwacji */}
             <div ref={asystentRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 transition-all scroll-mt-6">
-              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'asystent' ? 'bg-cerulean text-white border-b border-cerulean' : 'bg-sea1 text-cerulean border-b border-transparent'}`} onClick={() => handleModuleToggle('asystent', asystentRef)}>
-                <Icons.Search className={activeModule === 'asystent' ? 'text-white' : 'text-cerulean'} />
+              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'asystent' ? 'bg-cerulean text-white border-b border-cerulean' : 'bg-white text-cerulean border-b border-transparent'}`} onClick={() => handleModuleToggle('asystent', asystentRef)}>
+                <Icons.Search className={`w-6 h-6 shrink-0 ${activeModule === 'asystent' ? 'text-white' : 'text-cerulean'}`} />
                 <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Asystent Rezerwacji</h2>
-                <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'asystent' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white/60 hover:bg-white/80 text-cerulean'}`}>
+                <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'asystent' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-sky-50 hover:bg-sky-100 text-cerulean'}`}>
                   {activeModule === 'asystent' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'asystent' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                 </button>
               </div>
@@ -820,17 +894,6 @@
                     {assistantResults.length === 0 ? <div className="bg-rose-50 border border-rose-200 rounded-3xl p-6 text-center text-rose-800 font-bold shadow-sm">Brak wolnych domków w tym terminie.</div> : 
                       <> 
                         {renderAssistantMessage()}
-                        <div className="w-full overflow-x-auto overflow-y-hidden h-[60svh] md:h-auto bg-white rounded-3xl border border-slate-200 relative shadow-sm">
-                          <div className="relative h-full aspect-[1.6/1] w-[calc(60svh*1.6)] md:w-full md:h-auto min-w-[900px]">
-                            <div className="absolute inset-0 bg-cover bg-center opacity-40 grayscale" style={{ backgroundImage: `url('https://greckiedomkizeus.pl/assets/images/APP%20ZEUS%20map.jpg')` }} />
-                            {CABINS.map(cabin => {
-                              const reqCap = parseInt(assistantData.capacity);
-                              const isAvailable = assistantResults.some(r => r.id === cabin.id);
-                              const bgClass = isAvailable ? getAssistantCabinColor(cabin.capacity, reqCap) : 'bg-slate-300/60 text-slate-500 cursor-not-allowed';
-                              return <button key={cabin.id} onClick={() => isAvailable && handleCabinClick(cabin, { startDate: assistantData.startDate, endDate: assistantData.endDate })} disabled={!isAvailable} className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-9 h-9 md:w-11 md:h-11 rounded-[14px] md:rounded-[18px] flex items-center justify-center font-extrabold text-xs md:text-sm border-2 border-white transition-transform ${bgClass}`} style={{ left: cabin.left, top: cabin.top }}>{cabin.number}</button>;
-                            })}
-                          </div>
-                        </div>
                       </>
                     }
                   </div>
@@ -841,10 +904,10 @@
 
             {/* 2. RUCH DZISIAJ */}
             <div ref={ruchRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 transition-all scroll-mt-6">
-              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'ruch' ? 'bg-zest text-white border-b border-zest' : 'bg-orange-50 text-orange-800 border-b border-transparent'}`} onClick={() => handleModuleToggle('ruch', ruchRef)}>
-                <Icons.UsersIcon className={`w-6 h-6 shrink-0 ${activeModule === 'ruch' ? 'text-white' : 'text-orange-700'}`} />
+              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'ruch' ? 'bg-zest text-white border-b border-zest' : 'bg-white text-zest border-b border-transparent'}`} onClick={() => handleModuleToggle('ruch', ruchRef)}>
+                <Icons.UsersIcon className={`w-6 h-6 shrink-0 ${activeModule === 'ruch' ? 'text-white' : 'text-zest'}`} />
                 <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Ruch Dzisiaj</h2>
-                <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'ruch' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white/60 hover:bg-white/80 text-orange-900'}`}>
+                <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'ruch' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-orange-50 hover:bg-orange-100 text-zest'}`}>
                   {activeModule === 'ruch' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'ruch' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                 </button>
               </div>
@@ -869,7 +932,7 @@
                            <div key={item.cabinNumber} className="grid grid-cols-2 gap-2 md:gap-4 bg-white rounded-3xl border border-slate-200 p-2 md:p-3 shadow-sm">
                                <div className="flex flex-col justify-center border-r border-slate-100 pr-2 md:pr-4">
                                    {item.arrival ? (
-                                       <button onClick={() => handleEditClick(item.arrival)} className="flex flex-col items-center justify-center p-3 hover:bg-emerald-50 rounded-2xl w-full border border-emerald-100 hover:border-emerald-200 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+                                       <button onClick={() => handleEditClick(item.arrival)} className="flex flex-col items-center justify-center p-3 hover:bg-emerald-50 rounded-2xl w-full border border-transparent hover:border-emerald-200 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
                                            <span className="font-black text-emerald-600 text-sm md:text-base mb-1">{item.arrival.startTime}</span>
                                            <span className="font-bold text-slate-800 text-sm md:text-base">Domek {item.cabinNumber}</span>
                                            <span className="text-[10px] md:text-xs text-slate-500 truncate w-full max-w-[140px] text-center mt-1">{item.arrival.firstName} {item.arrival.lastName}</span>
@@ -878,7 +941,7 @@
                                </div>
                                <div className="flex flex-col justify-center pl-2 md:pl-0">
                                    {item.departure ? (
-                                       <button onClick={() => handleEditClick(item.departure)} className="flex flex-col items-center justify-center p-3 hover:bg-orange-50 rounded-2xl w-full border border-orange-100 hover:border-orange-200 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500/20">
+                                       <button onClick={() => handleEditClick(item.departure)} className="flex flex-col items-center justify-center p-3 hover:bg-orange-50 rounded-2xl w-full border border-transparent hover:border-orange-200 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500/20">
                                            <span className="font-black text-zest text-sm md:text-base mb-1">{item.departure.endTime}</span>
                                            <span className="font-bold text-slate-800 text-sm md:text-base">Domek {item.cabinNumber}</span>
                                            <span className="text-[10px] md:text-xs text-slate-500 truncate w-full max-w-[140px] text-center mt-1">{item.departure.firstName} {item.departure.lastName}</span>
@@ -898,19 +961,19 @@
 
             {/* 3. Tabela Rezerwacji */}
             <div ref={rezerwacjeRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 flex flex-col overflow-hidden relative z-10 transition-all scroll-mt-6">
-              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'rezerwacje' ? 'bg-teal text-white border-b border-teal' : 'bg-sea2 text-teal-900 border-b border-transparent'}`} onClick={() => handleModuleToggle('rezerwacje', rezerwacjeRef)}>
-                 <Icons.CalendarLine className={`w-6 h-6 shrink-0 ${activeModule === 'rezerwacje' ? 'text-white' : 'text-teal-700'}`} />
+              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'rezerwacje' ? 'bg-teal text-white border-b border-teal' : 'bg-white text-teal border-b border-transparent'}`} onClick={() => handleModuleToggle('rezerwacje', rezerwacjeRef)}>
+                 <Icons.CalendarLine className={`w-6 h-6 shrink-0 ${activeModule === 'rezerwacje' ? 'text-white' : 'text-teal'}`} />
                  <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Rezerwacje</h2>
-                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'rezerwacje' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white/60 hover:bg-white/80 text-teal-900'}`}>
+                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'rezerwacje' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-teal/10 hover:bg-teal/20 text-teal'}`}>
                     {activeModule === 'rezerwacje' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'rezerwacje' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                  </button>
               </div>
 
               {activeModule === 'rezerwacje' && (
               <div className="p-4 md:p-6 animate-in slide-in-from-top-2 fade-in duration-200 bg-slate-100">
-                <div className="flex flex-wrap gap-2 w-full mb-5 bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
-                   {STATUS_OPTIONS.map(s => <button key={s} onClick={() => setFilterStatus(s)} className={`px-4 py-2.5 text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-xl border transition-all flex items-center whitespace-nowrap ${filterStatus === s ? `${getStatusClasses(s)} ring-2 ring-current/20 shadow-sm` : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'}`}>{getStatusIcon(s)} {s.split(' - ')[0]}</button>)}
-                   <button onClick={() => setFilterStatus('All')} className={`px-5 py-2.5 text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-xl border transition-all ml-auto ${filterStatus === 'All' ? 'bg-slate-800 text-white border-slate-800 shadow-md' : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'}`}>Wszystkie</button>
+                <div className="flex flex-wrap gap-2 w-full mb-5">
+                   {STATUS_OPTIONS.map(s => <button key={s} onClick={() => setFilterStatus(s)} className={`px-4 py-2.5 text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-xl border transition-all flex items-center whitespace-nowrap shadow-sm ${filterStatus === s ? 'bg-white ring-2 ring-cerulean/30 border-cerulean text-cerulean' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}>{getStatusIcon(s)} {s.split(' - ')[0]}</button>)}
+                   <button onClick={() => setFilterStatus('All')} className={`px-5 py-2.5 text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-xl border transition-all ml-auto shadow-sm ${filterStatus === 'All' ? 'bg-white text-slate-900 border-slate-900 ring-1 ring-slate-900' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}>Wszystkie</button>
                 </div>
                 
                 <div className="w-full overflow-x-auto border border-slate-200 rounded-3xl shadow-sm horizontal-scroll-hint bg-white">
@@ -943,10 +1006,10 @@
                                 )}
                             </td>
                             <td className="p-5 whitespace-nowrap">
-                               <div className="mb-2.5 font-medium"><strong className="text-slate-800 text-sm">{formatDatePL(res.startDate)}</strong> <span className="text-xs text-slate-500 ml-1.5 bg-slate-100 px-2 py-1 rounded-md">{res.startTime}</span></div>
-                               <div className="font-medium"><strong className="text-slate-800 text-sm">{formatDatePL(res.endDate)}</strong> <span className="text-xs text-slate-500 ml-1.5 bg-slate-100 px-2 py-1 rounded-md">{res.endTime}</span></div>
+                               <div className="mb-2.5 font-medium"><strong className="text-slate-800 text-sm">{formatDatePL(res.startDate)}</strong> <span className="text-xs text-slate-500 ml-1.5 bg-slate-100 px-1.5 py-0.5 rounded-md">{res.startTime}</span></div>
+                               <div className="font-medium"><strong className="text-slate-800 text-sm">{formatDatePL(res.endDate)}</strong> <span className="text-xs text-slate-500 ml-1.5 bg-slate-100 px-1.5 py-0.5 rounded-md">{res.endTime}</span></div>
                             </td>
-                            <td className="p-5 whitespace-nowrap font-black text-slate-800 text-sm">{res.totalPrice.toLocaleString('pl-PL')} zł <div className="text-[11px] text-slate-500 mt-1.5 font-bold">({res.deposit.toLocaleString('pl-PL')} zł)</div></td>
+                            <td className="p-5 whitespace-nowrap font-black text-slate-800 text-sm">{res.totalPrice.toLocaleString('pl-PL')} zł <div className="text-[11px] text-slate-500 mt-1.5 font-medium">({res.deposit.toLocaleString('pl-PL')} zł)</div></td>
                             <td className="p-5">
                               <span className={`w-full px-4 py-3 rounded-2xl text-[10px] font-bold flex items-center border leading-tight shadow-sm ${getStatusClasses(res.status)}`}>{getStatusIcon(res.status)} {res.status}</span>
                               {res.status.includes('Nowa') && <CountdownTimer createdAt={res.createdAt} />}
@@ -962,27 +1025,27 @@
 
             {/* 4. Oś czasu Container */}
             <div ref={osCzasuRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 transition-all scroll-mt-6">
-               <div className={`p-4 md:px-6 flex flex-row items-center justify-between gap-4 w-full cursor-pointer transition-colors ${activeModule === 'osczaus' ? 'bg-indigo-500 text-white border-b border-indigo-500' : 'bg-sea5 text-indigo-900 border-b border-transparent'}`} onClick={(e) => handleModuleToggle('osczaus', osCzasuRef)}>
+               <div className={`p-4 md:px-6 flex flex-row items-center justify-between gap-4 w-full cursor-pointer transition-colors ${activeModule === 'osczaus' ? 'bg-cerulean text-white border-b border-cerulean' : 'bg-white text-cerulean border-b border-transparent'}`} onClick={(e) => handleModuleToggle('osczaus', osCzasuRef)}>
                   <div className="flex items-center gap-3 shrink-0 mr-2">
-                    <Icons.CalendarLine className={`w-6 h-6 shrink-0 ${activeModule === 'osczaus' ? 'text-white' : 'text-indigo-700'}`} />
+                    <Icons.CalendarLine className={`w-6 h-6 shrink-0 ${activeModule === 'osczaus' ? 'text-white' : 'text-cerulean'}`} />
                     <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Oś czasu</h2>
                   </div>
-                  <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'osczaus' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white/60 hover:bg-white/80 text-indigo-900'}`}>
+                  <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'osczaus' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-cerulean/10 hover:bg-cerulean/20 text-cerulean'}`}>
                     {activeModule === 'osczaus' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'osczaus' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                   </button>
                </div>
 
                {activeModule === 'osczaus' && (
                <div className="p-4 md:p-6 bg-slate-100 animate-in slide-in-from-top-2 fade-in duration-200">
-                  <div className="bg-white p-3 md:p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap gap-3 items-center mb-4">
-                    <div className="flex gap-2">
-                      <button onClick={centerToday} className="flex-none w-auto items-center px-5 py-2.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold transition-all shadow-sm"><Icons.CalendarLine className="w-4 h-4" /> Dzisiaj</button>
-                      <button onClick={showAllTimeline} className="flex-none w-auto items-center px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm"><Icons.Expand className="w-4 h-4" /> Wszystkie</button>
+                  <div className="flex flex-wrap gap-3 items-center mb-5">
+                    <div className="flex gap-3">
+                      <button onClick={centerToday} className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl text-sm font-bold transition-all shadow-sm hover:bg-slate-50"><Icons.CalendarLine className="w-5 h-5 shrink-0" /> Dzisiaj</button>
+                      <button onClick={showAllTimeline} className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl text-sm font-bold transition-all shadow-sm hover:bg-slate-50"><Icons.Expand className="w-5 h-5 shrink-0" /> Wszystkie</button>
                     </div>
-                    <div className="flex items-center bg-white rounded-xl border border-slate-300 shadow-sm p-0.5 ml-auto md:ml-0">
-                       <button onClick={() => shiftTimeline(-1)} className="p-2.5 hover:bg-slate-50 rounded-l-xl text-slate-500 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/20"><Icons.ChevronLeft className="w-5 h-5" /></button>
+                    <div className="flex items-center bg-white rounded-2xl border border-slate-200 shadow-sm p-1 ml-auto md:ml-0">
+                       <button onClick={() => shiftTimeline(-1)} className="p-3 hover:bg-slate-50 rounded-l-2xl text-slate-500 transition-colors focus:outline-none focus:ring-2 focus:ring-cerulean/20"><Icons.ChevronLeft className="w-5 h-5 shrink-0" /></button>
                        <div className="w-px h-6 bg-slate-200"></div>
-                       <button onClick={() => shiftTimeline(1)} className="p-2.5 hover:bg-slate-50 rounded-r-xl text-slate-500 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/20"><Icons.ChevronRight className="w-5 h-5" /></button>
+                       <button onClick={() => shiftTimeline(1)} className="p-3 hover:bg-slate-50 rounded-r-2xl text-slate-500 transition-colors focus:outline-none focus:ring-2 focus:ring-cerulean/20"><Icons.ChevronRight className="w-5 h-5 shrink-0" /></button>
                     </div>
                   </div>
                   
@@ -1000,7 +1063,7 @@
                         <div className="flex flex-1">
                           {gridColumns.map((col) => {
                             const isToday = col.dateStr === todayStr;
-                            return <div key={col.id} className={`text-center relative flex flex-col justify-between border-r border-slate-100 last:border-r-0 ${isToday ? 'bg-indigo-50' : ''}`} style={{ width: `${col.widthPercent}%` }}>
+                            return <div key={col.id} className={`text-center relative flex flex-col justify-between border-r border-slate-100 last:border-r-0 ${isToday ? 'bg-cerulean/5' : ''}`} style={{ width: `${col.widthPercent}%` }}>
                               <div className="text-[8px] font-bold text-slate-400 uppercase pt-1">{col.dayName}</div>
                               <div className={`text-[11px] md:text-xs font-black my-1.5 ${col.isWeekend ? 'text-rose-500' : 'text-slate-800'}`}>{col.label}</div>
                             </div>
@@ -1016,7 +1079,7 @@
                                 <div className="w-16 md:w-20 shrink-0 sticky left-0 z-20 bg-white group-hover:bg-slate-50 font-extrabold text-amalfi text-sm md:text-base flex items-center justify-center border-r border-slate-200 transition-colors shadow-[1px_0_0_0_#e2e8f0]">{cabin?.number}</div>
                                 <div className="flex-1 h-full relative bg-white border-r border-slate-200">
                                   <div className="absolute inset-0 flex w-full">
-                                     {gridColumns.map((col) => <div key={col.id} className={`border-r border-slate-100 h-full z-0 ${col.dateStr === todayStr ? 'bg-indigo-50 border-indigo-200 border-r-2' : ''}`} style={{ width: `${col.widthPercent}%` }}></div>)}
+                                     {gridColumns.map((col) => <div key={col.id} className={`border-r border-slate-100 h-full z-0 ${col.dateStr === todayStr ? 'bg-cerulean/5 border-cerulean/20 border-r-2' : ''}`} style={{ width: `${col.widthPercent}%` }}></div>)}
                                   </div>
                                   {cabinReservations.map(res => {
                                     const styleParams = getReservationStyleParams(res);
@@ -1040,10 +1103,10 @@
 
             {/* 5. MODUŁ: SPRZĄTANIE */}
             <div ref={sprzatanieRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 mt-6 transition-all scroll-mt-6">
-              <div className={`p-4 md:px-6 flex items-center gap-3 w-full cursor-pointer transition-colors ${activeModule === 'sprzatanie' ? 'bg-apricot text-slate-900 border-b border-apricot' : 'bg-sea6 text-purple-900 border-b border-transparent'}`} onClick={() => handleModuleToggle('sprzatanie', sprzatanieRef)}>
-                 <Icons.Broom className={`w-6 h-6 shrink-0 ${activeModule === 'sprzatanie' ? 'text-slate-900' : 'text-purple-700'}`} />
+              <div className={`p-4 md:px-6 flex items-center gap-3 w-full cursor-pointer transition-colors ${activeModule === 'sprzatanie' ? 'bg-apricot text-orange-900 border-b border-apricot' : 'bg-white text-orange-800 border-b border-transparent'}`} onClick={() => handleModuleToggle('sprzatanie', sprzatanieRef)}>
+                 <Icons.Broom className={`w-6 h-6 shrink-0 ${activeModule === 'sprzatanie' ? 'text-orange-900' : 'text-orange-700'}`} />
                  <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Sprzątanie</h2>
-                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'sprzatanie' ? 'bg-white/40 hover:bg-white/60 text-slate-900' : 'bg-white/60 hover:bg-white/80 text-purple-900'}`}>
+                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'sprzatanie' ? 'bg-white/40 hover:bg-white/60 text-orange-900' : 'bg-orange-50 hover:bg-orange-100 text-orange-900'}`}>
                     {activeModule === 'sprzatanie' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'sprzatanie' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                  </button>
               </div>
@@ -1053,11 +1116,11 @@
                 <div className="flex flex-wrap items-center justify-start gap-4 w-full mb-6">
                    <div className="flex items-center gap-2">
                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">DO SPRZĄTNIĘCIA:</span>
-                     <span className="bg-purple-50 border border-purple-200 text-purple-700 px-4 py-2 rounded-2xl text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-sm text-center whitespace-nowrap">{countDoSprzatania} DOMKI</span>
+                     <span className="bg-purple-100 text-purple-800 px-4 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider shadow-sm">{countDoSprzatania} {countDoSprzatania === 1 ? 'domek' : countDoSprzatania > 1 && countDoSprzatania < 5 ? 'domki' : 'domków'}</span>
                    </div>
                    <div className="flex items-center gap-2">
                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">DO ROZLICZENIA:</span>
-                     <span className="bg-emerald-50 border border-emerald-300 text-emerald-800 px-4 py-2 rounded-2xl text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-sm text-center whitespace-nowrap">{(countZrobioneAmount).toLocaleString('pl-PL')} ZŁOTYCH</span>
+                     <span className="bg-zest/20 text-orange-900 px-4 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider shadow-sm">{(countZrobioneAmount).toLocaleString('pl-PL')} zł</span>
                    </div>
                 </div>
                 
@@ -1085,12 +1148,12 @@
                                <div className="flex flex-col gap-2">
                                  <div className="flex items-center gap-3">
                                     <span className="text-[10px] font-bold uppercase text-slate-400 w-6">Od:</span> 
-                                    <button onClick={() => handleEditClick(timeRange.fromRes)} className="font-bold text-amalfi hover:underline bg-sea1 border border-sky-200 px-3 py-1.5 rounded-lg transition-colors text-left truncate max-w-[200px] shadow-sm">{timeRange.fromTime}</button>
+                                    <button onClick={() => handleEditClick(timeRange.fromRes)} className="font-bold text-amalfi hover:underline bg-white border border-slate-200 px-3 py-1.5 rounded-lg transition-colors text-left truncate max-w-[200px] shadow-sm">{timeRange.fromTime}</button>
                                  </div>
                                  <div className="flex items-center gap-3">
                                     <span className="text-[10px] font-bold uppercase text-slate-400 w-6">Do:</span> 
                                     {timeRange.toRes ? (
-                                      <button onClick={() => handleEditClick(timeRange.toRes)} className="font-bold text-amalfi hover:underline bg-sea1 border border-sky-200 px-3 py-1.5 rounded-lg transition-colors text-left truncate max-w-[200px] shadow-sm">{timeRange.toTime}</button>
+                                      <button onClick={() => handleEditClick(timeRange.toRes)} className="font-bold text-amalfi hover:underline bg-white border border-slate-200 px-3 py-1.5 rounded-lg transition-colors text-left truncate max-w-[200px] shadow-sm">{timeRange.toTime}</button>
                                     ) : (
                                       <span className="font-medium text-slate-400 px-3 py-1.5">Brak kolejnego</span>
                                     )}
@@ -1106,49 +1169,6 @@
               )}
             </div>
 
-            {/* 7. Map Container */}
-            <div ref={mapaRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 mt-6 transition-all scroll-mt-6">
-              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'mapa' ? 'bg-lightYellow text-slate-900 border-b border-lightYellow' : 'bg-sea3 text-cyan-900 border-b border-transparent'}`} onClick={() => handleModuleToggle('mapa', mapaRef)}>
-                 <Icons.MapIcon className={`w-6 h-6 shrink-0 ${activeModule === 'mapa' ? 'text-slate-900' : 'text-cyan-700'}`} />
-                 <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Mapa</h2>
-                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'mapa' ? 'bg-slate-900/10 hover:bg-slate-900/20 text-slate-900' : 'bg-white/60 hover:bg-white/80 text-cyan-900'}`}>
-                    {activeModule === 'mapa' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'mapa' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
-                 </button>
-              </div>
-              {activeModule === 'mapa' && (
-              <div className="p-4 md:p-6 bg-slate-100 animate-in slide-in-from-top-2 fade-in duration-200">
-                <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-4 mb-4">
-                   <div className="flex gap-2 items-center w-full md:w-auto overflow-x-auto hide-scrollbar pb-1 md:pb-0">
-                      {['4','5','7'].map(c => <button key={c} onClick={() => setMapCapacityFilter(mapCapacityFilter === c ? null : c)} className={`px-6 py-3 text-xs md:text-sm rounded-xl border font-bold min-h-[48px] whitespace-nowrap transition-all ${mapCapacityFilter === c ? 'bg-yellow-100 border-yellow-400 text-yellow-800 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'}`}>{c} osobowe</button>)}
-                      <div className="hidden md:block w-px h-8 bg-slate-300 shrink-0 mx-3"></div>
-                      <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest whitespace-nowrap hidden sm:block">stań na dzień:</span>
-                      <div className="relative flex items-center bg-slate-50 border border-slate-200 rounded-2xl focus-within:border-yellow-400 shadow-sm transition-colors min-w-[150px] min-h-[48px]">
-                        <input type="date" value={mapReferenceDate} onChange={e => setMapReferenceDate(e.target.value)} className="w-full pl-5 pr-11 py-3 bg-transparent outline-none text-sm font-bold cursor-pointer min-h-[48px] relative z-10" />
-                        <Icons.CalendarInput className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none z-0" />
-                      </div>
-                   </div>
-                </div>
-                <div className="w-full overflow-x-auto overflow-y-hidden h-[100svh] md:h-auto bg-white border border-slate-200 rounded-3xl relative horizontal-scroll-hint shadow-sm">
-                  <div className="absolute top-5 left-5 z-10 bg-white/95 p-4 rounded-xl shadow-md border border-slate-200 flex flex-col gap-3 text-xs font-bold text-slate-800 backdrop-blur-md">
-                    <div className="flex items-center gap-3"><span className="w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-sm"></span> Wolny</div>
-                    <div className="flex items-center gap-3"><span className="w-3.5 h-3.5 rounded-full bg-rose-600 shadow-sm"></span> Zajęty</div>
-                  </div>
-                  <div className="relative h-full aspect-[1.6/1] w-[calc(100svh*1.6)] md:w-full md:h-auto min-w-[900px]">
-                    <div className="absolute inset-0 bg-cover bg-center opacity-90" style={{ backgroundImage: `url('https://greckiedomkizeus.pl/assets/images/APP%20ZEUS%20map.jpg')` }} />
-                    {CABINS.map(cabin => {
-                      const isFilteredOut = mapCapacityFilter && String(cabin.capacity) !== mapCapacityFilter;
-                      const mapStatus = getCabinMapStatus(cabin.id);
-                      let bgClass = 'bg-emerald-500 shadow-md text-white'; 
-                      if (mapStatus === 'occupied') bgClass = 'bg-rose-600 shadow-md text-white'; 
-                      if (isFilteredOut) bgClass = 'bg-slate-300/40 text-slate-400 grayscale opacity-60';
-                      return <button key={cabin.id} onClick={() => handleCabinClick(cabin)} disabled={isFilteredOut} className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-9 h-9 md:w-12 md:h-12 rounded-[12px] md:rounded-[16px] flex items-center justify-center font-extrabold text-xs md:text-sm border-[3px] border-white/90 shadow-xl transition-all ${bgClass} ${isFilteredOut ? 'cursor-not-allowed' : 'hover:scale-110 hover:z-20 focus:outline-none focus:ring-4 focus:ring-yellow-400/40'}`} style={{ left: cabin.left, top: cabin.top }}>{cabin.number}</button>;
-                    })}
-                  </div>
-                </div>
-              </div>
-              )}
-            </div>
-
           </main>
 
           {/* Modal / Dialog (Formularz Rezerwacji) - Naprawiony scroll i flow! */}
@@ -1157,7 +1177,7 @@
               
               {/* Header Modala */}
               <div className="px-5 sm:px-6 py-5 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
-                <h3 className="text-sm md:text-base text-slate-500 font-medium flex items-center gap-1.5 flex-wrap flex-1 pr-4 leading-snug">
+                <h3 className="text-sm md:text-base text-slate-600 font-medium flex items-center gap-1.5 flex-wrap flex-1 pr-4 leading-snug">
                   {editingId ? 'Edycja rezerwacji:' : 'Nowa rezerwacja:'} 
                   <span className="font-normal text-slate-500">{generateResId(selectedCabin?.number, formData.startDate, formData.endDate, editingId ? reservations.find(r=>r.id===editingId)?.createdAt : null)}</span>
                   <span className="text-slate-900 font-black text-base md:text-lg whitespace-nowrap ml-1">
@@ -1168,58 +1188,55 @@
               </div>
               
               {/* Content modala + Przyciski w Normal Flow */}
-              <div className="flex-1 overflow-y-auto">
-                <div className="p-5 sm:p-6 min-h-full flex flex-col pb-[max(env(safe-area-inset-bottom),24px)]">
-                  <form id="reservationForm" onSubmit={handleSaveReservation} className="space-y-4 flex-1 flex flex-col">
-                    <div className="pb-6 space-y-4">
-                      {!editingId ? <div className="w-full px-4 py-3 rounded-xl text-sm font-bold border border-red-200 bg-red-50 text-red-700 flex items-center min-h-[48px] shadow-sm"><Icons.StatusNew /> Nowa - czekam na zadatek</div> : 
-                        <div className="relative z-[150]">
-                          <label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Status rezerwacji *</label>
-                          <button type="button" onClick={() => setStatusDropdownOpen(!statusDropdownOpen)} className={`w-full px-4 py-3 rounded-2xl text-sm font-bold text-left border flex items-center justify-between shadow-sm cursor-pointer hover:brightness-95 transition-all min-h-[56px] ${getStatusClasses(formData.status)}`}>
-                            <div className="flex items-center">{getStatusIcon(formData.status)} {formData.status}</div>
-                            <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider opacity-70">Zmień <Icons.ChevronDown className="w-4 h-4 shrink-0" /></div>
-                          </button>
-                          {statusDropdownOpen && <div className="absolute top-[105%] left-0 w-full bg-white border border-slate-200 rounded-2xl shadow-xl z-[160] overflow-hidden flex flex-col p-1.5 gap-1 animate-in slide-in-from-top-2 border-t-2 border-t-amalfi">
-                              {STATUS_OPTIONS.map(status => <button key={status} type="button" onClick={(e) => { e.preventDefault(); handleInputChange({ target: { name: 'status', value: status } }); setStatusDropdownOpen(false); }} className={`w-full px-4 py-4 rounded-xl text-sm font-medium text-left border flex items-center transition-colors hover:bg-slate-50 ${formData.status === status ? getStatusClasses(status) : 'bg-transparent border-transparent text-slate-600'}`}>{getStatusIcon(status)} {status}</button>)}
-                            </div>}
+              <div className="flex-1 overflow-y-auto p-5 sm:p-6 pb-[max(env(safe-area-inset-bottom),24px)]">
+                <form id="reservationForm" onSubmit={handleSaveReservation} className="space-y-4">
+                  {!editingId ? <div className="w-full px-4 py-3 rounded-xl text-sm font-bold border border-red-200 bg-red-50 text-red-700 flex items-center min-h-[48px] shadow-sm"><Icons.StatusNew /> Nowa - czekam na zadatek</div> : 
+                    <div className="relative z-[150]">
+                      <label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Status rezerwacji *</label>
+                      <button type="button" onClick={() => setStatusDropdownOpen(!statusDropdownOpen)} className={`w-full px-4 py-3 rounded-2xl text-sm font-bold text-left border flex items-center justify-between shadow-sm cursor-pointer hover:brightness-95 transition-all min-h-[56px] ${getStatusClasses(formData.status)}`}>
+                        <div className="flex items-center">{getStatusIcon(formData.status)} {formData.status}</div>
+                        <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider opacity-70">Zmień <Icons.ChevronDown className="w-4 h-4 shrink-0" /></div>
+                      </button>
+                      {statusDropdownOpen && <div className="absolute top-[105%] left-0 w-full bg-white border border-slate-200 rounded-2xl shadow-xl z-[160] overflow-hidden flex flex-col p-1.5 gap-1 animate-in slide-in-from-top-2 border-t-2 border-t-amalfi">
+                          {STATUS_OPTIONS.map(status => <button key={status} type="button" onClick={(e) => { e.preventDefault(); handleInputChange({ target: { name: 'status', value: status } }); setStatusDropdownOpen(false); }} className={`w-full px-4 py-4 rounded-xl text-sm font-medium text-left border flex items-center transition-colors hover:bg-slate-50 ${formData.status === status ? getStatusClasses(status) : 'bg-transparent border-transparent text-slate-600'}`}>{getStatusIcon(status)} {status}</button>)}
                         </div>}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Imię *</label><input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} required className={`w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-amalfi outline-none transition-colors text-sm font-medium text-slate-800 shadow-sm min-h-[56px] ${getValidationClass(formData.firstName)}`} placeholder="np. Jan" /></div>
-                        <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Nazwisko *</label><input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} required className={`w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-amalfi outline-none transition-colors text-sm font-medium text-slate-800 shadow-sm min-h-[56px] ${getValidationClass(formData.lastName)}`} placeholder="np. Kowalski" /></div>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Telefon *</label><input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} required className={`w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-amalfi outline-none text-sm font-medium shadow-sm min-h-[56px] transition-colors ${getValidationClass(formData.phone)}`} placeholder="123 456 789" /></div>
-                        <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Email</label><input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-amalfi text-sm font-medium shadow-sm outline-none transition-colors min-h-[56px]" placeholder="jan@mail.com" /></div>
-                      </div>
-                      <div className="w-full"><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Liczba gości (opcjonalnie)</label><div className="relative"><select name="guestCount" value={formData.guestCount} onChange={handleInputChange} className="w-full pl-5 pr-12 py-3 bg-white border border-slate-300 rounded-2xl font-medium text-sm appearance-none shadow-sm focus:border-amalfi transition-colors outline-none min-h-[56px] relative z-10">{Array.from({ length: selectedCabin?.capacity || 4 }).map((_, i) => { const num = (selectedCabin?.capacity || 4) - i; return <option key={num} value={num}>{num} {num === 1 ? 'osoba' : 'osoby'}</option>;})}</select><Icons.ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 w-4 h-4 z-0" /></div></div>
-                      <div className="w-full space-y-4">
-                        <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Zameldowanie do: (15:00 - 22:00) *</label>
-                          <div className="flex flex-col sm:flex-row gap-3"><div className={`relative flex-1 bg-white border border-slate-300 rounded-2xl shadow-sm transition-colors focus-within:border-amalfi ${getValidationClass(formData.startDate)}`}><input type="date" name="startDate" value={formData.startDate} onChange={handleInputChange} required className="w-full px-5 py-3 bg-transparent outline-none text-sm font-medium cursor-pointer min-h-[56px] block relative z-10" /><Icons.CalendarInput className="absolute right-4 top-1/2 -translate-y-1/2 text-amalfi pointer-events-none z-0" /></div><input type="time" name="startTime" value={formData.startTime} onChange={handleInputChange} className="w-full sm:w-[120px] px-3 py-3 border border-slate-300 rounded-2xl font-medium text-center shadow-sm text-sm focus:border-amalfi outline-none transition-colors bg-white min-h-[56px] relative z-10" /></div>
-                        </div>
-                        <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Doba hotelowa do: (15:00 - 10:00) *</label>
-                          <div className="flex flex-col sm:flex-row gap-3"><div className={`relative flex-1 bg-white border border-slate-300 rounded-2xl shadow-sm transition-colors focus-within:border-amalfi ${getValidationClass(formData.endDate)}`}><input type="date" name="endDate" value={formData.endDate} onChange={handleInputChange} required className="w-full px-5 py-3 bg-transparent outline-none text-sm font-medium cursor-pointer min-h-[56px] block relative z-10" /><Icons.CalendarInput className="absolute right-4 top-1/2 -translate-y-1/2 text-amalfi pointer-events-none z-0" /></div><input type="time" name="endTime" value={formData.endTime} onChange={handleInputChange} className="w-full sm:w-[120px] px-3 py-3 border border-slate-300 rounded-2xl font-medium text-center shadow-sm text-sm focus:border-amalfi outline-none transition-colors bg-white min-h-[56px] relative z-10" /></div>
-                        </div>
-                      </div>
-                      <div className="pt-2"><label className="block text-xs font-semibold text-slate-500 mb-2 ml-1">Opcje dodatkowe</label>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          {[ {name: 'crib', label: 'Łóżeczko', price: '+100 zł', icon: <Icons.Crib />}, {name: 'bath', label: 'Wanienka', price: '+0 zł', icon: <Icons.BabyBath />}, {name: 'chair', label: 'Krzesełko', price: '+0 zł', icon: <Icons.HighChair />} ].map(item => (
-                            <label key={item.name} className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-colors shadow-sm min-h-[64px] ${formData.addons[item.name] ? 'bg-amalfi/5 border-amalfi text-amalfi ring-2 ring-amalfi/10' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
-                              <input type="checkbox" name={item.name} checked={formData.addons[item.name]} onChange={handleInputChange} className="hidden" />{item.icon}<div className="flex flex-col"><span className="text-sm font-semibold">{item.label}</span><span className="text-[10px] font-bold uppercase opacity-60 tracking-wider">{item.price}</span></div>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                      {renderPriceBreakdown()}
+                    </div>}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Imię *</label><input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} required className={`w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-amalfi outline-none transition-colors text-sm font-medium text-slate-800 shadow-sm min-h-[56px] ${getValidationClass(formData.firstName)}`} placeholder="np. Jan" /></div>
+                    <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Nazwisko *</label><input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} required className={`w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-amalfi outline-none transition-colors text-sm font-medium text-slate-800 shadow-sm min-h-[56px] ${getValidationClass(formData.lastName)}`} placeholder="np. Kowalski" /></div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Telefon *</label><input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} required className={`w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-amalfi outline-none text-sm font-medium shadow-sm min-h-[56px] transition-colors ${getValidationClass(formData.phone)}`} placeholder="123 456 789" /></div>
+                    <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Email</label><input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:border-amalfi text-sm font-medium shadow-sm outline-none transition-colors min-h-[56px]" placeholder="jan@mail.com" /></div>
+                  </div>
+                  <div className="w-full"><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Liczba gości (opcjonalnie)</label><div className="relative"><select name="guestCount" value={formData.guestCount} onChange={handleInputChange} className="w-full pl-5 pr-12 py-3 bg-white border border-slate-300 rounded-2xl font-medium text-sm appearance-none shadow-sm focus:border-amalfi transition-colors outline-none min-h-[56px] relative z-10">{Array.from({ length: selectedCabin?.capacity || 4 }).map((_, i) => { const num = (selectedCabin?.capacity || 4) - i; return <option key={num} value={num}>{num} {num === 1 ? 'osoba' : 'osoby'}</option>;})}</select><Icons.ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 w-4 h-4 z-0 shrink-0" /></div></div>
+                  <div className="w-full space-y-4">
+                    <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Zameldowanie do: (15:00 - 22:00) *</label>
+                      <div className="flex flex-col sm:flex-row gap-3"><div className={`relative flex-1 bg-white border border-slate-300 rounded-2xl shadow-sm transition-colors focus-within:border-amalfi ${getValidationClass(formData.startDate)}`}><input type="date" name="startDate" value={formData.startDate} onChange={handleInputChange} required className="w-full px-5 py-3 bg-transparent outline-none text-sm font-medium cursor-pointer min-h-[56px] block relative z-10" /><Icons.CalendarInput className="absolute right-4 top-1/2 -translate-y-1/2 text-amalfi pointer-events-none z-0 shrink-0" /></div><input type="time" name="startTime" value={formData.startTime} onChange={handleInputChange} className="w-full sm:w-[120px] px-3 py-3 border border-slate-300 rounded-2xl font-medium text-center shadow-sm text-sm focus:border-amalfi outline-none transition-colors bg-white min-h-[56px] relative z-10" /></div>
                     </div>
+                    <div><label className="block text-xs font-semibold text-slate-500 mb-1 ml-1">Doba hotelowa do: (15:00 - 10:00) *</label>
+                      <div className="flex flex-col sm:flex-row gap-3"><div className={`relative flex-1 bg-white border border-slate-300 rounded-2xl shadow-sm transition-colors focus-within:border-amalfi ${getValidationClass(formData.endDate)}`}><input type="date" name="endDate" value={formData.endDate} onChange={handleInputChange} required className="w-full px-5 py-3 bg-transparent outline-none text-sm font-medium cursor-pointer min-h-[56px] block relative z-10" /><Icons.CalendarInput className="absolute right-4 top-1/2 -translate-y-1/2 text-amalfi pointer-events-none z-0 shrink-0" /></div><input type="time" name="endTime" value={formData.endTime} onChange={handleInputChange} className="w-full sm:w-[120px] px-3 py-3 border border-slate-300 rounded-2xl font-medium text-center shadow-sm text-sm focus:border-amalfi outline-none transition-colors bg-white min-h-[56px] relative z-10" /></div>
+                    </div>
+                  </div>
+                  <div className="pt-2"><label className="block text-xs font-semibold text-slate-500 mb-2 ml-1">Opcje dodatkowe</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {[ {name: 'crib', label: 'Łóżeczko', price: '+100 zł', icon: <Icons.Crib />}, {name: 'bath', label: 'Wanienka', price: '+0 zł', icon: <Icons.BabyBath />}, {name: 'chair', label: 'Krzesełko', price: '+0 zł', icon: <Icons.HighChair />} ].map(item => (
+                        <label key={item.name} className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-colors shadow-sm min-h-[64px] ${formData.addons[item.name] ? 'bg-amalfi/5 border-amalfi text-amalfi ring-2 ring-amalfi/10' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
+                          <input type="checkbox" name={item.name} checked={formData.addons[item.name]} onChange={handleInputChange} className="hidden" />{item.icon}<div className="flex flex-col"><span className="text-sm font-semibold">{item.label}</span><span className="text-[10px] font-bold uppercase opacity-60 tracking-wider">{item.price}</span></div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  {renderPriceBreakdown()}
 
-                    {/* Przyciski Action w Normal Flow na dole okna */}
-                    <div className="mt-auto pt-6 border-t border-slate-200 flex flex-wrap-reverse sm:flex-nowrap gap-3 justify-end items-center w-full">
-                      {editingId && <button type="button" onClick={() => deleteReservation(editingId)} className="w-full sm:w-auto px-6 py-4 text-rose-600 bg-white border border-rose-200 rounded-2xl text-sm font-semibold shadow-sm hover:bg-rose-50 transition-colors min-h-[56px]">Usuń rezerwację</button>}
-                      <button type="button" onClick={handleCloseModal} className="flex-1 sm:flex-none px-8 py-4 text-slate-600 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold shadow-sm hover:bg-slate-100 transition-colors min-h-[56px]">Anuluj</button>
-                      <button type="submit" className="flex-1 sm:flex-none px-10 py-4 bg-amalfi hover:bg-amalfi/90 text-white rounded-2xl text-sm font-bold shadow-md transition-colors min-h-[56px]">Zapisz</button>
-                    </div>
-                  </form>
-                </div>
+                  {/* Przyciski Action w Normal Flow na dole okna */}
+                  <div className="mt-8 pt-6 border-t border-slate-200 flex flex-col sm:flex-row gap-3 justify-end items-center w-full">
+                    {editingId && <button type="button" onClick={() => deleteReservation(editingId)} className="w-full sm:w-auto px-6 py-4 text-rose-600 bg-rose-50/50 hover:bg-rose-100 rounded-2xl text-sm font-bold transition-colors min-h-[56px] sm:mr-auto">Usuń rezerwację</button>}
+                    <button type="button" onClick={handleCloseModal} className="w-full sm:w-auto px-8 py-4 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-2xl text-sm font-bold transition-colors min-h-[56px] ml-0 sm:ml-auto">Anuluj</button>
+                    <button type="submit" className="w-full sm:w-auto px-10 py-4 bg-cerulean hover:bg-cerulean/90 text-white rounded-2xl text-base font-bold shadow-md transition-colors min-h-[56px]">Zapisz</button>
+                  </div>
+
+                </form>
               </div>
             </div>
           </div>
