@@ -21,8 +21,8 @@
             coral: '#F07167',    /* Wibrujący koralowy */
           },
           borderRadius: {
-            '3xl': '1rem',
-            '4xl': '1rem',
+            '3xl': '1rem', /* Zmienione na 1rem */
+            '4xl': '1rem', /* Zmienione na 1rem */
           }
         }
       }
@@ -134,7 +134,7 @@
       ChevronUp: ({ className }) => <svg className={`w-4 h-4 shrink-0 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7"/></svg>,
       Close: ({ className }) => <svg className={`w-5 h-5 shrink-0 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>,
       CalendarLine: ({ className }) => <svg className={`shrink-0 ${className || 'w-5 h-5 inline-block mr-1.5'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>,
-      Expand: ({ className }) => <svg className={`w-5 h-5 shrink-0 inline-block mr-1.5 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>,
+      Expand: ({ className }) => <svg className={`w-5 h-5 shrink-0 inline-block mr-1.5 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l-5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>,
       Search: ({ className }) => <svg className={`shrink-0 ${className || 'w-6 h-6 inline-block mr-2'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>,
       MapIcon: ({ className }) => <svg className={`shrink-0 ${className || 'w-6 h-6 inline-block mr-2'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>,
       CalendarInput: ({ className }) => <svg className={`w-5 h-5 shrink-0 ${className || ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>,
@@ -851,10 +851,10 @@
 
             {/* 1. Asystent Rezerwacji */}
             <div ref={asystentRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 transition-all scroll-mt-6">
-              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'asystent' ? 'bg-cerulean text-white border-b border-cerulean' : 'bg-white text-cerulean border-b border-transparent'}`} onClick={() => handleModuleToggle('asystent', asystentRef)}>
-                <Icons.Search className={`w-6 h-6 shrink-0 ${activeModule === 'asystent' ? 'text-white' : 'text-cerulean'}`} />
+              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'asystent' ? 'bg-teal text-white border-b border-teal' : 'bg-white text-teal border-b border-transparent'}`} onClick={() => handleModuleToggle('asystent', asystentRef)}>
+                <Icons.Search className={`w-6 h-6 shrink-0 ${activeModule === 'asystent' ? 'text-white' : 'text-teal'}`} />
                 <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Asystent Rezerwacji</h2>
-                <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'asystent' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-sky-50 hover:bg-sky-100 text-cerulean'}`}>
+                <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'asystent' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-teal/10 hover:bg-teal/20 text-teal'}`}>
                   {activeModule === 'asystent' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'asystent' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                 </button>
               </div>
@@ -904,10 +904,10 @@
 
             {/* 2. RUCH DZISIAJ */}
             <div ref={ruchRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 transition-all scroll-mt-6">
-              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'ruch' ? 'bg-zest text-white border-b border-zest' : 'bg-white text-zest border-b border-transparent'}`} onClick={() => handleModuleToggle('ruch', ruchRef)}>
-                <Icons.UsersIcon className={`w-6 h-6 shrink-0 ${activeModule === 'ruch' ? 'text-white' : 'text-zest'}`} />
+              <div className={`p-4 md:px-6 flex items-center gap-3 cursor-pointer transition-colors ${activeModule === 'ruch' ? 'bg-teal text-white border-b border-teal' : 'bg-white text-teal border-b border-transparent'}`} onClick={() => handleModuleToggle('ruch', ruchRef)}>
+                <Icons.UsersIcon className={`w-6 h-6 shrink-0 ${activeModule === 'ruch' ? 'text-white' : 'text-teal'}`} />
                 <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Ruch Dzisiaj</h2>
-                <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'ruch' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-orange-50 hover:bg-orange-100 text-zest'}`}>
+                <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'ruch' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-teal/10 hover:bg-teal/20 text-teal'}`}>
                   {activeModule === 'ruch' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'ruch' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                 </button>
               </div>
@@ -1025,12 +1025,12 @@
 
             {/* 4. Oś czasu Container */}
             <div ref={osCzasuRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 transition-all scroll-mt-6">
-               <div className={`p-4 md:px-6 flex flex-row items-center justify-between gap-4 w-full cursor-pointer transition-colors ${activeModule === 'osczaus' ? 'bg-cerulean text-white border-b border-cerulean' : 'bg-white text-cerulean border-b border-transparent'}`} onClick={(e) => handleModuleToggle('osczaus', osCzasuRef)}>
+               <div className={`p-4 md:px-6 flex flex-row items-center justify-between gap-4 w-full cursor-pointer transition-colors ${activeModule === 'osczaus' ? 'bg-teal text-white border-b border-teal' : 'bg-white text-teal border-b border-transparent'}`} onClick={(e) => handleModuleToggle('osczaus', osCzasuRef)}>
                   <div className="flex items-center gap-3 shrink-0 mr-2">
-                    <Icons.CalendarLine className={`w-6 h-6 shrink-0 ${activeModule === 'osczaus' ? 'text-white' : 'text-cerulean'}`} />
+                    <Icons.CalendarLine className={`w-6 h-6 shrink-0 ${activeModule === 'osczaus' ? 'text-white' : 'text-teal'}`} />
                     <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Oś czasu</h2>
                   </div>
-                  <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'osczaus' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-cerulean/10 hover:bg-cerulean/20 text-cerulean'}`}>
+                  <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'osczaus' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-teal/10 hover:bg-teal/20 text-teal'}`}>
                     {activeModule === 'osczaus' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'osczaus' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                   </button>
                </div>
@@ -1103,10 +1103,10 @@
 
             {/* 5. MODUŁ: SPRZĄTANIE */}
             <div ref={sprzatanieRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 mt-6 transition-all scroll-mt-6">
-              <div className={`p-4 md:px-6 flex items-center gap-3 w-full cursor-pointer transition-colors ${activeModule === 'sprzatanie' ? 'bg-apricot text-orange-900 border-b border-apricot' : 'bg-white text-orange-800 border-b border-transparent'}`} onClick={() => handleModuleToggle('sprzatanie', sprzatanieRef)}>
-                 <Icons.Broom className={`w-6 h-6 shrink-0 ${activeModule === 'sprzatanie' ? 'text-orange-900' : 'text-orange-700'}`} />
+              <div className={`p-4 md:px-6 flex items-center gap-3 w-full cursor-pointer transition-colors ${activeModule === 'sprzatanie' ? 'bg-teal text-white border-b border-teal' : 'bg-white text-teal border-b border-transparent'}`} onClick={() => handleModuleToggle('sprzatanie', sprzatanieRef)}>
+                 <Icons.Broom className={`w-6 h-6 shrink-0 ${activeModule === 'sprzatanie' ? 'text-white' : 'text-teal'}`} />
                  <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Sprzątanie</h2>
-                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'sprzatanie' ? 'bg-white/40 hover:bg-white/60 text-orange-900' : 'bg-orange-50 hover:bg-orange-100 text-orange-900'}`}>
+                 <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'sprzatanie' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-teal/10 hover:bg-teal/20 text-teal'}`}>
                     {activeModule === 'sprzatanie' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'sprzatanie' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
                  </button>
               </div>
