@@ -143,7 +143,7 @@
       BabyBath: () => <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 12v4a4 4 0 01-4 4H8a4 4 0 01-4-4v-4m16 0H4m8-6v6m-4-2h8" /></svg>,
       HighChair: () => <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 10h10M8 10V6a2 2 0 012-2h4a2 2 0 012 2v4m-9 0L5 22m10-12l2 12m-9-6h6" /></svg>,
       Clock: () => <svg className="w-4 h-4 inline mr-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
-      Broom: ({ className }) => <svg className={`shrink-0 ${className || 'w-6 h-6 inline mr-2'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21l3-14m0 0l3 14m-3-14c1.5 0 3-1 3-2 0-2-3-3-3s-3 1-3 3c0 1 1.5 2 3 2zm-4 4h8" /></svg>,
+      Woman: ({ className }) => <svg className={`shrink-0 ${className || 'w-6 h-6 inline mr-2'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4a2 2 0 100 4 2 2 0 000-4z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l2.5 11h-11L9 10c1.2-1.5 4.8-1.5 6 0z"/></svg>,
       StatusNew: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
       StatusConfirmed: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" /></svg>,
       StatusInProgress: () => <svg className="w-4 h-4 inline mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
@@ -404,7 +404,7 @@
       if(statusStr.includes('Potwierdzona')) return <Icons.StatusConfirmed />;
       if(statusStr.includes('W trakcie')) return <Icons.StatusInProgress />;
       if(statusStr.includes('Zrealizowana')) return <Icons.StatusDone />;
-      if(statusStr.includes('sprzątnięcia')) return <Icons.Broom />;
+      if(statusStr.includes('sprzątnięcia')) return <Icons.Woman />;
       if(statusStr.includes('rozliczenia')) return <Icons.WrenchIcon />;
       if(statusStr.includes('rozliczono')) return <Icons.CheckDouble />;
       if(statusStr.includes('Anulowana')) return <Icons.StatusCanceled />;
@@ -972,13 +972,13 @@
               </div>
 
               {activeModule === 'rezerwacje' && (
-              <div className="p-4 md:p-6 animate-in slide-in-from-top-2 fade-in duration-200 bg-slate-100">
-                <div className="flex flex-wrap gap-2 w-full mb-5">
+              <div className="pt-4 md:pt-6 pb-0 animate-in slide-in-from-top-2 fade-in duration-200 bg-slate-100">
+                <div className="flex flex-wrap gap-2 w-full mb-5 px-4 md:px-6">
                    {STATUS_OPTIONS.map(s => <button key={s} onClick={() => setFilterStatus(s)} className={`px-4 py-2.5 text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-xl border transition-all flex items-center whitespace-nowrap shadow-sm ${filterStatus === s ? 'bg-white ring-2 ring-cerulean/30 border-cerulean text-cerulean' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}>{getStatusIcon(s)} {s.split(' - ')[0]}</button>)}
                    <button onClick={() => setFilterStatus('All')} className={`px-5 py-2.5 text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-xl border transition-all ml-auto shadow-sm ${filterStatus === 'All' ? 'bg-white text-slate-900 border-slate-900 ring-1 ring-slate-900' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}>Wszystkie</button>
                 </div>
                 
-                <div className="w-full overflow-x-auto border border-slate-200 rounded-3xl shadow-sm horizontal-scroll-hint bg-white">
+                <div className="w-full overflow-x-auto border-y border-slate-200 horizontal-scroll-hint bg-white">
                     <table className="w-full text-left border-collapse table-auto min-w-[750px]">
                       <thead>
                         <tr className="bg-slate-50 text-slate-500 text-[10px] uppercase font-extrabold tracking-wider border-b border-slate-200">
@@ -1038,8 +1038,8 @@
                </div>
 
                {activeModule === 'osczaus' && (
-               <div className="p-4 md:p-6 bg-slate-100 animate-in slide-in-from-top-2 fade-in duration-200">
-                  <div className="flex flex-wrap gap-3 items-center mb-5">
+               <div className="pt-4 md:pt-6 pb-0 bg-slate-100 animate-in slide-in-from-top-2 fade-in duration-200">
+                  <div className="flex flex-wrap gap-3 items-center mb-5 px-4 md:px-6">
                     <div className="flex gap-3">
                       <button onClick={centerToday} className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl text-sm font-bold transition-all shadow-sm hover:bg-slate-50"><Icons.CalendarLine className="w-5 h-5 shrink-0" /> Dzisiaj</button>
                       <button onClick={showAllTimeline} className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl text-sm font-bold transition-all shadow-sm hover:bg-slate-50"><Icons.Expand className="w-5 h-5 shrink-0" /> Wszystkie</button>
@@ -1051,7 +1051,7 @@
                     </div>
                   </div>
                   
-                  <div className="w-full overflow-x-auto bg-white rounded-3xl border border-slate-200 shadow-sm horizontal-scroll-hint">
+                  <div className="w-full overflow-x-auto bg-white border-y border-slate-200 horizontal-scroll-hint">
                     <div className={`${containerMinW} flex flex-col`}>
                       {/* Headers */}
                       {monthsHeader.length > 0 && <div className="flex w-full relative bg-slate-50 border-b border-slate-200">
@@ -1106,7 +1106,7 @@
             {/* 5. MODUŁ: SPRZĄTANIE */}
             <div ref={sprzatanieRef} className="bg-white rounded-4xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-10 mt-6 transition-all scroll-mt-6">
               <div className={`p-4 md:px-6 flex items-center gap-3 w-full cursor-pointer transition-colors ${activeModule === 'sprzatanie' ? 'bg-cerulean text-white border-b border-cerulean' : 'bg-white text-cerulean border-b border-transparent'}`} onClick={() => handleModuleToggle('sprzatanie', sprzatanieRef)}>
-                 <Icons.Broom className={`w-6 h-6 shrink-0 ${activeModule === 'sprzatanie' ? 'text-white' : 'text-cerulean'}`} />
+                 <Icons.Woman className={`w-6 h-6 shrink-0 ${activeModule === 'sprzatanie' ? 'text-white' : 'text-cerulean'}`} />
                  <h2 className="text-base md:text-lg font-extrabold uppercase tracking-tight">Sprzątanie</h2>
                  <button className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors shadow-sm ${activeModule === 'sprzatanie' ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-cerulean/10 hover:bg-cerulean/20 text-cerulean'}`}>
                     {activeModule === 'sprzatanie' ? 'ZWIŃ' : 'ROZWIŃ'} {activeModule === 'sprzatanie' ? <Icons.ChevronUp className="w-4 h-4 shrink-0" /> : <Icons.ChevronDown className="w-4 h-4 shrink-0" />}
@@ -1114,8 +1114,8 @@
               </div>
 
               {activeModule === 'sprzatanie' && (
-              <div className="p-4 md:p-6 bg-slate-100 animate-in slide-in-from-top-2 fade-in duration-200">
-                <div className="flex flex-wrap items-center justify-start gap-4 w-full mb-6">
+              <div className="pt-4 md:pt-6 pb-0 bg-slate-100 animate-in slide-in-from-top-2 fade-in duration-200">
+                <div className="flex flex-wrap items-center justify-start gap-4 w-full mb-6 px-4 md:px-6">
                    <div className="flex items-center gap-2">
                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">DO SPRZĄTNIĘCIA:</span>
                      <span className="bg-purple-100 text-purple-800 px-4 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider shadow-sm">{countDoSprzatania} {countDoSprzatania === 1 ? 'domek' : countDoSprzatania > 1 && countDoSprzatania < 5 ? 'domki' : 'domków'}</span>
@@ -1126,7 +1126,7 @@
                    </div>
                 </div>
                 
-                <div className="w-full border border-slate-200 rounded-3xl shadow-sm bg-white overflow-hidden">
+                <div className="w-full border-y border-slate-200 bg-white overflow-x-auto">
                   <table className="w-full text-left border-collapse table-fixed min-w-[500px]">
                     <thead>
                       <tr className="bg-slate-50 text-slate-500 text-[10px] uppercase font-extrabold tracking-wider border-b border-slate-200 select-none">
